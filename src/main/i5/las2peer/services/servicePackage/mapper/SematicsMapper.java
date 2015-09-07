@@ -72,7 +72,9 @@ public class SematicsMapper {
 		long postId = doc.get("postid") != null ? Long.parseLong(doc.get("postid")) : -1;
 		SemanticTagEntity tag_entity = tagDao.queryForId(postId);
 
-		addTagEntityFreqMap(tag_entity.getPostId(), tag_entity.getAnnotations());
+		if (tag_entity != null) {
+		    addTagEntityFreqMap(tag_entity.getPostId(), tag_entity.getAnnotations());
+		}
 		totalNoResources = tagDao.countOf();
 
 	    }

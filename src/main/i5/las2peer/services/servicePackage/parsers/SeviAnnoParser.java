@@ -38,14 +38,14 @@ import com.google.gson.JsonParser;
  * @author sathvik
  *
  */
-public class ERSJsonParser implements IParser<List<Post>, List<User>> {
+public class SeviAnnoParser implements IParser<List<Post>, List<User>> {
     private Log log = LogFactory.getLog(ERSJsonParser.class);
 
     private JAXBContext context;
     private String postsPath;
     private String usersDataPath;
 
-    public ERSJsonParser(String path) {
+    public SeviAnnoParser(String path) {
 	try {
 	    JsonElement jelement = new JsonParser().parse(path);
 	    JsonObject jobject = jelement.getAsJsonObject();
@@ -132,7 +132,11 @@ public class ERSJsonParser implements IParser<List<Post>, List<User>> {
 		    post.setBody(jsonObj.get(parameter.bodyFieldName).getAsString());
 		}
 		if (!TextUtils.isEmpty(parameter.ownerUserIdFieldName)) {
-		    post.setOwnerUserId(jsonObj.get(parameter.ownerUserIdFieldName).getAsString());
+		    String author = jsonObj.get("author").getAsJsonObject().get("name").getAsString();
+		    post.setOwnerUserId(author);
+
+		    // For rest of the system.
+		    // post.setOwnerUserId(jsonObj.get(dataField.ownerUserIdFieldName).getAsString());
 		}
 		if (!TextUtils.isEmpty(parameter.titleFieldName)) {
 		    post.setTitle(jsonObj.get(parameter.titleFieldName).getAsString());

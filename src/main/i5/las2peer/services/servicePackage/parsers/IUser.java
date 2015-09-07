@@ -20,12 +20,6 @@ public interface IUser {
 
     public String getAbtMe();
 
-    public String getViews();
-
-    public String getUpVotes();
-
-    public String getDownVotes();
-
     public String getUserId();
 
     public String getWebsiteUrl();

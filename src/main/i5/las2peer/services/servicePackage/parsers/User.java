@@ -1,60 +1,90 @@
 package i5.las2peer.services.servicePackage.parsers;
 
-
-
 /**
  * Bean class to hold parsed values.
  * 
  * @author sathvik
  */
 
-public class User {
-	private String accountId;
-	
-	private String userId;
+public class User implements IUser {
+    private String accountId;
 
-	private String userName;
-	
-	private String reputation;
-	
-	private String creationDate;
-	
-	private String location;
-	
-	private String aboutme;
-	
-	private String websiteUrl;
+    private String userId;
 
-	public String getUserAccId() {
-		return accountId;
-	}
+    private String userName;
 
-	public String getUserName() {
-		return userName;
-	}
+    private String reputation;
 
-	public String getReputation() {
-		return reputation;
-	}
+    private String creationDate;
 
-	public String getCreationDate() {
-		return creationDate;
-	}
+    private String location;
 
-	public String getLocation() {
-		return location;
-	}
+    private String aboutme;
 
-	public String getAbtMe() {
-		return aboutme;
-	}
+    private String websiteUrl;
 
-	public String getUserId() {
-		return userId;
-	}
+    public void setUserAccId(String accId) {
+	accountId = accId;
+    }
 
-	public String getWebsiteUrl() {
-		return websiteUrl;
-	}
-		
+    public void setUserName(String username) {
+	userName = username;
+    }
+
+    public void setReputation(String rept) {
+	reputation = rept;
+    }
+
+    public void setCreationDate(String date) {
+	creationDate = date;
+    }
+
+    public void setLocation(String loc) {
+	location = loc;
+    }
+
+    public void setAbtMe(String abtMe) {
+	aboutme = abtMe;
+    }
+
+    public void setUserId(String userid) {
+	userId = userid;
+    }
+
+    public String setWebsiteUrl() {
+	return websiteUrl;
+    }
+
+    public String getUserAccId() {
+	return accountId;
+    }
+
+    public String getUserName() {
+	return userName;
+    }
+
+    public String getReputation() {
+	return reputation;
+    }
+
+    public String getCreationDate() {
+	return creationDate;
+    }
+
+    public String getLocation() {
+	return location;
+    }
+
+    public String getAbtMe() {
+	return aboutme;
+    }
+
+    public String getUserId() {
+	return userId;
+    }
+
+    public String getWebsiteUrl() {
+	return websiteUrl;
+    }
+
 }

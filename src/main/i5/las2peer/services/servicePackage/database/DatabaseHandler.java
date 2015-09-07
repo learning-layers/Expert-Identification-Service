@@ -192,18 +192,27 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	    if (user.getUserId() != null) {
 		entity.setUserId(Long.parseLong(user.getUserId()));
 	    }
-
-	    entity.setCreationDate(user.getCreationDate());
-	    entity.setAbtMe(user.getAbtMe());
-	    entity.setLocation(user.getLocation());
+	    if (user.getCreationDate() != null) {
+		entity.setCreationDate(user.getCreationDate());
+	    }
+	    if (user.getAbtMe() != null) {
+		entity.setAbtMe(user.getAbtMe());
+	    }
+	    if (user.getLocation() != null) {
+		entity.setLocation(user.getLocation());
+	    }
 
 	    if (user.getUserName() != null && user.getUserName().length() > 0) {
 		entity.setUserName(user.getUserName());
 	    } else {
 		entity.setUserName("anonymous");
 	    }
-	    entity.setWebsiteUrl(user.getWebsiteUrl());
 
+	    if (user.getWebsiteUrl() != null) {
+		entity.setWebsiteUrl(user.getWebsiteUrl());
+	    }
+
+	    log.info("Creatting user entity...");
 	    UserDao.createIfNotExists(entity);
 	}
     }

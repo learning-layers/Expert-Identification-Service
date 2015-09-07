@@ -39,6 +39,7 @@ import i5.las2peer.services.servicePackage.metrics.EvaluationMeasure;
 import i5.las2peer.services.servicePackage.parsers.ERSCSVParser;
 import i5.las2peer.services.servicePackage.parsers.ERSJsonParser;
 import i5.las2peer.services.servicePackage.parsers.ERSXmlParser;
+import i5.las2peer.services.servicePackage.parsers.User;
 import i5.las2peer.services.servicePackage.parsers.csvparser.UserCSV;
 import i5.las2peer.services.servicePackage.scorer.CommunityAwareHITSStrategy;
 import i5.las2peer.services.servicePackage.scorer.CommunityAwarePageRankStrategy;
@@ -69,6 +70,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.util.TextUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.TopDocs;
 
@@ -79,7 +81,6 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-
 /**
  * @author sathvik
  */
@@ -174,9 +175,16 @@ public class ExpertRecommenderService extends Service {
 
 	DatabaseHandler dbHandler = null;
 	dbHandler = new DatabaseHandler(databaseName, "root", "");
-	String experts = dbHandler.getExperts(Long.parseLong(expertsId));
 
-	HttpResponse res = new HttpResponse(experts);
+	HttpResponse res = null;
+	if (expertsId != null && Long.parseLong(expertsId) != -1) {
+	    String experts = dbHandler.getExperts(Long.parseLong(expertsId));
+	    res = new HttpResponse(experts);
+	} else {
+	    res = new HttpResponse(ERSMessage.EXPERTS_NOT_FOUND);
+	}
+
+
 	res.setStatus(200);
 	return res;
 
@@ -256,7 +264,7 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets/{datasetId}/algorithms/datamodeling")
     @ResourceListApi(description = "Get the visualization graph")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
     @Summary("Returns the id of the expert collection.")
     public HttpResponse modelExperts(@PathParam("datasetId") String datasetId, @ContentParam String query,
@@ -380,7 +388,7 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets/{datasetId}/algorithms/{algorithmName}")
     @ResourceListApi(description = "Executes the requested algorithm on the dataset.")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
     @Summary("Returns the id of the expert collection, id of evaluation metrics and id of the visualization")
     public HttpResponse applyAlgorithm(@PathParam("datasetId") String datasetId, @PathParam("algorithmName") String algorithmName,
@@ -485,8 +493,7 @@ public class ExpertRecommenderService extends Service {
     @GET
     @Path("datasets/{datasetId}/experts/{expertsCollectionId}/expert/{expertId}/posts")
     @ResourceListApi(description = "Returns the related post of the expert.")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.TEXT_PLAIN)
+
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
     @Summary("Returns the related posts of the expert user.")
     public HttpResponse getPosts(@PathParam("datasetId") String datasetId, @PathParam("expertsCollectionId") String expertCollectionId,
@@ -637,41 +644,55 @@ public class ExpertRecommenderService extends Service {
     }
 
     /**
+     * This method parses data from remote url or from the local file on the
+     * server.
      * 
      * @param id
      *            Id of the dataset corresponding to the database to update.
      *            This is obtained while preparing the database.
      * @param type
      *            Input format of the dataset (xml, csv, json)
+     * @param urlObject
+     *            A remote urls wrapped in json object to parse the data from.
+     * 
      * @return A string representing if the update was success or failure.
      */
     @POST
     @ResourceListApi(description = "Parse the data files and add it to database.")
     @Path("datasets/{datasetId}/parse")
-    public HttpResponse parse(@PathParam("datasetId") String id, @QueryParam(name = "format", defaultValue = "xml") String type) {
+    public HttpResponse parse(@PathParam("datasetId") String id, @ContentParam String urlObject,
+	    @QueryParam(name = "format", defaultValue = "xml") String type) {
 
+	log.info("URL::" + urlObject);
 	HttpResponse res = null;
 
 	String databaseName = getDatabaseName(id);
 	if (databaseName == null) {
 	    try {
-		throw new ERSException("dataset name is null");
+		throw new ERSException(ERSMessage.DATASET_NOT_CONFIGURED);
 	    } catch (ERSException e) {
 		e.printStackTrace();
 	    }
 	}
 
+	String path = null;
+	if (!TextUtils.isEmpty(urlObject)) {
+	    path = urlObject;
+	} else {
+	    path = "datasets/" + databaseName;
+	}
+
 	DatabaseHandler dbHandler = new DatabaseHandler(databaseName, "root", "");
-	String dirPath = "datasets/" + databaseName;
+
 	try {
 	    if (type.equalsIgnoreCase("xml")) {
 		log.info("Executing XML Parser...");
-		ERSXmlParser xmlparser = new ERSXmlParser(dirPath);
+		ERSXmlParser xmlparser = new ERSXmlParser(path);
 		dbHandler.addPosts(xmlparser.getPosts());
 		dbHandler.addUsers(xmlparser.getUsers());
 	    } else if (type.equalsIgnoreCase("csv")) {
 		log.info("Executing CSV Parser...");
-		ERSCSVParser csvparser = new ERSCSVParser(dirPath);
+		ERSCSVParser csvparser = new ERSCSVParser(path);
 		dbHandler.addPosts(csvparser.getPosts());
 		List<UserCSV> users = csvparser.getUsers();
 
@@ -680,11 +701,9 @@ public class ExpertRecommenderService extends Service {
 		}
 	    } else if (type.equalsIgnoreCase("json")) {
 		log.info("Executing Json Parser...");
-		ERSJsonParser jsonparser = new ERSJsonParser(dirPath);
+		ERSJsonParser jsonparser = new ERSJsonParser(path);
 		dbHandler.addPosts(jsonparser.getPosts());
-		// List<UserCSV> users = jsonparser.getUsers();
-		List<UserCSV> users = null;
-
+		List<User> users = jsonparser.getUsers();
 		if (users != null && users.size() > 0) {
 		    dbHandler.addUsers(users);
 		}
@@ -731,18 +750,14 @@ public class ExpertRecommenderService extends Service {
 	HttpResponse res = null;
 	try {
 	    LuceneMysqlIndexer indexer = new LuceneMysqlIndexer(dbHandler.getConnectionSource(), indexDir);
-	    log.info("Building index...");
 	    indexer.buildIndex();
-
-	    res = new HttpResponse("Indexing success");
-
+	    res = new HttpResponse(ERSMessage.INDEX_SUCCESS);
 	} catch (SQLException e) {
 	    e.printStackTrace();
-	    res = new HttpResponse("Failed to perform database opertaion");
+	    res = new HttpResponse(ERSMessage.SQL_FAILURE);
 	} catch (Exception e) {
 	    e.printStackTrace();
-	    res = new HttpResponse("Failed to perform indexing");
-	    log.info("Failed to perform indexing" + e);
+	    res = new HttpResponse(ERSMessage.INDEX_FAILURE);
 	}
 
 	res.setStatus(200);

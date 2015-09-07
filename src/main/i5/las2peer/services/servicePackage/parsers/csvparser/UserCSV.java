@@ -109,39 +109,6 @@ public class UserCSV implements IUser {
     /*
      * (non-Javadoc)
      * 
-     * @see i5.las2peer.services.servicePackage.parsers.IUser#getViews()
-     */
-    @Override
-    public String getViews() {
-	// TODO Auto-generated method stub
-	return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see i5.las2peer.services.servicePackage.parsers.IUser#getUpVotes()
-     */
-    @Override
-    public String getUpVotes() {
-	// TODO Auto-generated method stub
-	return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see i5.las2peer.services.servicePackage.parsers.IUser#getDownVotes()
-     */
-    @Override
-    public String getDownVotes() {
-	// TODO Auto-generated method stub
-	return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
      * @see i5.las2peer.services.servicePackage.parsers.IUser#getUserId()
      */
     @Override
