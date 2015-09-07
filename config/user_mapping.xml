@@ -1,0 +1,3 @@
+<?xml version="1.0"?>
+<!-- Keys value can be configured depending on the field of the current dataset -->
+	<map userId="userID" DisplayName="DisplayName" Reputation="Reputation" CreationDate="CreationDate" Location="Location" AboutMe="AboutMe" WebsiteUrl="WebsiteUrl"></map>
