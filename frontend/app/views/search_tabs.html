@@ -1,0 +1,8 @@
+<div id="tab-container" ng-controller="SearchCtrl">
+	<tabset justified="true">
+    	<tab heading="Search"><ng-include src="'app/views/search.html'"></ng-include></tab>
+    	<tab heading="Settings" select="handleSettings()"><ng-include src="'app/views/settings.html'"></ng-include></tab>
+    	<tab heading="Visualization" select="handleVisTab()" disabled="disableVis"><ng-include src="'app/views/visualization.html'"></ng-include></tab>
+    	<tab heading="Eavluation" select="handleEvaluationTab()"><ng-include src="'app/views/evaluation.html'"></ng-include></tab>
+	</tabset>
+<div>

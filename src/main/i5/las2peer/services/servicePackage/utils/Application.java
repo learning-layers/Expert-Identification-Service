@@ -64,7 +64,6 @@ public class Application {
 		for (int i = 0; i < values.size(); i++) {
 		    df.setMaximumFractionDigits(12);
 		    String result = df.format(values.get(i).doubleValue());
-		    System.out.println("double val is " + result);
 		    out.print(result);
 		    if (i < (values.size() - 1)) {
 			out.print(";");

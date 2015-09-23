@@ -78,7 +78,7 @@ public class TagExtractor {
 
 	    }
 	} catch (Exception e) {
-	    System.out.print(e.toString());
+	    e.printStackTrace();
 	}
 	// System.out.println("TAGS::  " + reqTags);
 	return Joiner.on(",").join(reqTags);

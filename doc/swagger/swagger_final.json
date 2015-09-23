@@ -1,0 +1,418 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Expert Recommender System",
+        "description": "An open source expert recommender system to recommend experts from the given data.",
+        "version": "1.0.0"
+    },
+    "host": "api.i5.ers",
+    "schemes": [
+        "http"
+    ],
+    "basePath": "/ers/v1",
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/datasets": {
+            "get": {
+                "summary": "Get all the available datasets on the server.",
+                "description": "Retrieves the list of all the datasets available with the ids and more details from the master database called ersdb.",
+                "responses": {
+                    "200": {
+                        "description": "Array of Dataset",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Datasets"
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Cannot connect to database.",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/{databaseName}/prepare": {
+            "post": {
+                "summary": "Creates all the required tables required for the dataset and recommendation service.",
+                "parameters": [
+                    {
+                        "name": "databaseName",
+                        "in": "path",
+                        "description": "Name of the database as specified in the master db(ersdb)",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "DataInfo",
+                        "schema": {
+                            "$ref": "#/definitions/dataInfo"
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/{datasetId}/parse": {
+            "post": {
+                "summary": "Parse the data files and add it to database. Data files cab be remote url or in the local server space.",
+                "parameters": [
+                    {
+                        "name": "datasetId",
+                        "in": "path",
+                        "description": "Dataset Id retreived from the master db (ersdb)",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "description": "format of the dataset (xml or json)",
+                        "required": false,
+                        "default": "xml",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/datasets/{datasetId}/indexer": {
+            "post": {
+                "summary": "Indexes the body and the title coloumn present in the database of the dataset.",
+                "parameters": [
+                    {
+                        "name": "datasetId",
+                        "in": "path",
+                        "description": "Dataset Id retreived from the master db (ersdb)",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/datasets/{datasetId}/semantics": {
+            "post": {
+                "summary": "Adds semantics data that is extracted from the dataset. Uses TAGME webservice for it.",
+                "parameters": [
+                    {
+                        "name": "datasetId",
+                        "in": "path",
+                        "description": "Dataset Id retreived from the master db (ersdb)",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "201": {
+                        "description": "Failure"
+                    }
+                }
+            }
+        },
+        "/datasets/{datasetId}/algorithms/{algorithmName}": {
+            "post": {
+                "summary": "Executes the requested algorithm on the dataset.",
+                "parameters": [
+                    {
+                        "name": "datasetId",
+                        "in": "path",
+                        "description": "Dataset Id retreived from the master db (ersdb)",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "algorithmName",
+                        "in": "path",
+                        "description": "Name of the algorithm to be applied by ers service.",
+                        "required": true,
+                        "type": "string",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "evaluation",
+                        "in": "query",
+                        "description": "To indicate to the service , if the algorithm must be evaluated for the query.",
+                        "required": false,
+                        "type": "string",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "visualization",
+                        "in": "query",
+                        "description": "To indicate to the service , if the algorithm must be visualized for the query. Holds true only for graph algorithms.",
+                        "required": false,
+                        "type": "string",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "alpha",
+                        "in": "query",
+                        "description": "Paramter of the algorithm. Default values are defined if not specified",
+                        "required": false,
+                        "type": "string",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "intra",
+                        "in": "query",
+                        "description": "Parameter for community based graph algorithms. Default values are defined if not specified.",
+                        "required": false,
+                        "type": "string",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "object",
+                        "schema": {
+                            "$ref": "#/definitions/Ids"
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/{datasetId}/algorithms/datamodeling": {
+            "post": {
+                "summary": "Apply data modeling technique",
+                "parameters": [
+                    {
+                        "name": "datasetId",
+                        "in": "path",
+                        "description": "Id of the dataset",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "alpha",
+                        "in": "query",
+                        "description": "To control the effect of term analysis and semantic analysis",
+                        "required": true,
+                        "type": "number",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "object",
+                        "schema": {
+                            "$ref": "#/definitions/Ids"
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/{datasetId}/experts/{expertsId}": {
+            "get": {
+                "summary": "Get the experts from the dataset with respect to an expert id.",
+                "parameters": [
+                    {
+                        "name": "datasetId",
+                        "in": "path",
+                        "description": "Id of the dataset",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "expertsId",
+                        "in": "path",
+                        "description": "Id retreived after applying the algorithm on teh dataset.",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "array of expert",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/experts"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/{datasetId}/evaluations/{evaluationId}": {
+            "get": {
+                "summary": "Lists all the evaluation id.",
+                "description": "Evaluation id that was recorded at differnt time when evaluation was requested by client.",
+                "parameters": [
+                    {
+                        "name": "datasetId",
+                        "in": "path",
+                        "description": "Id of the dataset",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "evaluationId",
+                        "in": "path",
+                        "description": "Id of the evaluation, retrieved after applying algorithm",
+                        "required": true,
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "evaluation details",
+                        "schema": {
+                            "type": "string",
+                            "items": {
+                                "$ref": "#/definitions/evaluationDetails"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/download/{filename}": {
+            "get": {
+                "summary": "Download the specified file from the server.",
+                "description": "This is used for visualization as client needs to download the graph generated from the server.",
+                "parameters": [
+                    {
+                        "name": "filename",
+                        "in": "path",
+                        "description": "name of the file to download",
+                        "required": true,
+                        "type": "string",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "a gexf, xml graph."
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Dataset": {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific dataset. For example, healthcare dataset will have its own unique id"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Description of dataset"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Display name of dataset"
+                }
+            }
+        },
+        "Datasets": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Dataset"
+            }
+        },
+        "Ids": {
+            "properties": {
+                "expertsId": {
+                    "type": "number"
+                },
+                "evaluationId": {
+                    "type": "number"
+                },
+                "visualizationId": {
+                    "type": "number"
+                }
+            }
+        },
+        "experts": {
+            "properties": {
+                "queryId": {
+                    "type": "number"
+                },
+                "experts": {
+                    "type": "string"
+                },
+                "date_created": {
+                    "type": "string"
+                }
+            }
+        },
+        "evaluationDetails": {
+            "properties": {
+                "id": {
+                    "type": "number"
+                },
+                "queryId": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "metrics": {
+                    "type": "string"
+                }
+            }
+        },
+        "dataInfo": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "dataset_name": {
+                    "type": "string"
+                },
+                "database_name": {
+                    "type": "string"
+                },
+                "original_filepath": {
+                    "type": "string"
+                },
+                "index_path": {
+                    "type": "string"
+                },
+                "created_on": {
+                    "type": "string"
+                }
+            }
+        },
+        "Error": {
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

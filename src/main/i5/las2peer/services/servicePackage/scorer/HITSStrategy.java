@@ -59,63 +59,15 @@ public class HITSStrategy extends AbstractSearcher implements ScoreStrategy {
     public void saveResults() {
 	expert2score = Application.sortByValue(node2hitsscore);
 
-	int i = 0;
 	JSONArray jsonArray = new JSONArray();
 
 	for (String userid : expert2score.keySet()) {
-	    i++;
-	    // Restrict result to 10 items for now.
-	    if (i < 10) {
+	    if (super.MAX_RESULTS > 0) {
 		UserEntity user = super.usermap.get(Long.parseLong(userid));
 		user.setScore(node2hitsscore.get(userid));
 
 		ArrayList<String> labels = super.jcreator.getConnectedLabels(userid);
 		user.setRelatedPosts(labels);
-
-		// try {
-		// HashMap<String, Integer> tag2count = new HashMap<String,
-		// Integer>();
-		// if (labels != null && labels.size() > 0) {
-		// for (String label : labels) {
-		// if (label != null) {
-		// String tags = super.dbHandler.getSemanticTags(label);
-		// if (tags != null && tags.length() > 0) {
-		// String[] tagAr = tags.split(",");
-		// if (tagAr != null && tagAr.length > 0) {
-		// for (String tag : tagAr) {
-		// System.out.println("TAG:: ");
-		// if (tag != null && tag.length() > 0) {
-		// // System.out.println("TAG:: " +
-		// // tag);
-		// if (tag2count.containsKey(tag)) {
-		// tag2count.put(tag, tag2count.get(tag) + 1);
-		// } else {
-		// tag2count.put(tag, 1);
-		// }
-		// }
-		// }
-		// }
-		// }
-		// }
-		//
-		// }
-		//
-		// LinkedHashMap<String, Integer> tag2countSorted =
-		// Application.sortByValue(tag2count);
-		// // StringBuilder actualTags = new StringBuilder();
-		// Iterator<String> it1 = tag2countSorted.keySet().iterator();
-		// int count = 0;
-		// ArrayList<String> reqTags = new ArrayList<String>();
-		// while (it1.hasNext() && count < 3) {
-		// reqTags.add(it1.next());
-		// count++;
-		// }
-		//
-		// user.setTags(Joiner.on(",").join(reqTags));
-		// }
-		// } catch (Exception e) {
-		// System.out.print(e.toString());
-		// }
 
 		if (user != null) {
 		    jsonArray.add(user);
@@ -123,11 +75,10 @@ public class HITSStrategy extends AbstractSearcher implements ScoreStrategy {
 	    } else {
 		break;
 	    }
+	    super.MAX_RESULTS--;
 	}
 
 	experts = jsonArray.toJSONString();
-
-	System.out.println(experts);
 
 	super.save(expert2score, experts);
     }

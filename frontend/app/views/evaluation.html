@@ -1,0 +1,31 @@
+<div id="settings-table-container"> 
+<table class="evaluation-table">
+	<tr>
+    	<th>Metrics</th>
+    	<th>Value</th> 
+  	</tr>
+ 	<tr>
+    	<td>Precision</td>
+    	<td>{{metrics.measures.avgPrecision}}</td>
+ 	</tr>
+  <tr>
+    <td>Recall</td>
+    <td>{{metrics.measures.avgRecall}}</td>
+  </tr>
+  <tr>
+    <td>Reciprocal rank</td>
+    <td>{{metrics.measures.reciprocalRank}}</td>
+  </tr>
+  <tr>
+    <td>Normal Discounted cumilative gain</td>
+    <td>{{metrics.measures.ndcg}}</td>
+  </tr>
+  <!--
+  <tr>
+    <td>11-pt inerpolated precision:</td>
+    <td><div class="elevenpt-graph"></div></td>
+  </tr>
+-->
+</table>
+
+</div>

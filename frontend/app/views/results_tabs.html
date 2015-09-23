@@ -1,0 +1,7 @@
+<div id="tab-container" ng-controller="ResultTabsCtrl">
+	<tabset justified="true">
+    	<tab heading="Results"><ng-include src="'app/views/expert_details.html'"></ng-include></tab>
+    	<tab heading="Visualization" select="handleVisTab()" disable="true"><ng-include src="'app/views/visualization.html'"></ng-include></tab>
+    	<tab heading="Eavluation" select="handleEvaluationTab()" ><ng-include src="'app/views/evaluation.html'"></ng-include></tab>
+	</tabset>
+<div>

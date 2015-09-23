@@ -101,7 +101,6 @@ public class SematicsMapper {
 	    HashMap<String, SemanticToken> tag2tagRes = new HashMap<String, SemanticToken>();
 	    for (int i = 0; i < jarr.size(); i++) {
 		JsonElement obj = ((JsonObject) jarr.get(i)).get("tags");
-		// System.out.println(postid + " " + obj);
 		if (obj != null && obj.isJsonNull() == false) {
 		    tagArr = obj.getAsJsonArray();
 		    confidenceVal = ((JsonObject) jarr.get(i)).get("rho").getAsDouble();

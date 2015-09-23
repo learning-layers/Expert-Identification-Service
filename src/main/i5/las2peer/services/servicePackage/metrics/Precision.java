@@ -39,7 +39,6 @@ public class Precision {
 
     public void compute() {
 	//System.out.println("Computing Precision::" + userId2score.size());
-	// precisions = new double[this.userId2score.size()];
 	precisions = new ArrayList<Double>();
 	double cumulativePrecision = 0;
 
@@ -54,7 +53,6 @@ public class Precision {
 	    // Calculate precision value only at relevant experts.
 	    double precision = 0;
 	    if (userEntity.isProbableExpert()) {
-		// System.out.println("An expert..." +
 		// userEntity.getReputation());
 		noRelevantExperts++;
 		// precisions[i] = (double) noRelevantExperts / (i + 1);
@@ -63,23 +61,14 @@ public class Precision {
 		// userEntity.getReputation());
 	    }
 	    precision = (double) noRelevantExperts / (i + 1);
-	    System.out.println("Precision..." + precision);
 	    precisions.add(precision);
 	    // System.out.println(" PRECISION:: " + precision);
 	    i++;
 	}
 
-	// for (int j = 0; j < this.count && j < this.userId2score.size(); j++)
-	// {
-	// cumulativePrecision += precisions[j];
-	// }
-	// System.out.println("Cum Precision Completed...");
-
 	for (int j = 0; j < precisions.size() && j < this.count; j++) {
 	    cumulativePrecision += precisions.get(j);
 	}
-
-	//System.out.println("CUM PRECISION:: " + cumulativePrecision);
 
 	if (precisions.size() > 0) {
 	    avgPrecision = (double) cumulativePrecision / precisions.size();

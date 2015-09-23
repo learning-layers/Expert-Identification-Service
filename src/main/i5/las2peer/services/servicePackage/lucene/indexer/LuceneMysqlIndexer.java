@@ -93,7 +93,6 @@ public class LuceneMysqlIndexer {
 
 		StopWordRemover stopWordRemover = new StopWordRemover(entity.getBody());
 		body = stopWordRemover.getPlainText();
-		System.out.println("Clean text " + body);
 	    } else {
 		body = entity.getCleanText();
 	    }

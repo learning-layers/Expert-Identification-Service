@@ -38,9 +38,7 @@ public class CommunityAwareHITSStrategy extends AbstractSearcher implements Scor
 	super(params);
     }
 
-    /**
-     * 
-     */
+
     @Override
     public void executeAlgorithm() {
 
@@ -48,7 +46,11 @@ public class CommunityAwareHITSStrategy extends AbstractSearcher implements Scor
 	ocdHITS.start(super.graphWriter.getGraphAsString("graph_jung.graphml"));
 	String coversHITS = ocdHITS.getCovers();
 	if (coversHITS == null) {
-	    // Throw exception or switch to classic algorithms.
+	    try {
+		throw new ERSException("Could not retrieve covers");
+	    } catch (ERSException e) {
+		e.printStackTrace();
+	    }
 	}
 	CommunityCoverMatrixParser CCMPHits = new CommunityCoverMatrixParser(coversHITS);
 	CCMPHits.parse();
@@ -97,22 +99,19 @@ public class CommunityAwareHITSStrategy extends AbstractSearcher implements Scor
     public void saveResults() {
 	expert2score = Application.sortByValue(node2hitsscore);
 
-	int count = 0;
 	JSONArray jsonArray = new JSONArray();
 
 	for (String userid : expert2score.keySet()) {
 	    // Restrict result to 10 items for now.
-	    if (count < 10) {
+	    if (super.MAX_RESULTS > 0) {
 		UserEntity user = super.usermap.get(Long.parseLong(userid));
 		user.setScore(node2hitsscore.get(userid));
 
 		if (user != null) {
 		    jsonArray.add(user);
 
-		} else {
-		    break;
 		}
-		count++;
+		super.MAX_RESULTS--;
 	    }
 	}
 	experts = jsonArray.toJSONString();

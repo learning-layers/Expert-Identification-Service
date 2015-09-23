@@ -1,0 +1,52 @@
+<div id="settings-table-container" ng-controller="settingsCtrl" ngModel=""> 
+
+<table class="settings-table">
+	<tr>
+    	<th>Choose option</th>
+    	<th>Scoring Algorithm</th> 
+    	<th>Parameters</th>
+  	</tr>
+
+  <tr>
+  	<td><input type="radio" ng-change="handleSelection()" name="radiobtn" ng-model="algorithm.value" value="{{choices[0].name}}"/></td>
+    <td>Modeling Technique</td>
+    	<td>
+    		<input ng-model="value" type="text" slider options="options" /> 
+    		<div class="slider-label"> <div class="left-label">Text</div> <div class="right-label">Semantics</div>  </div>
+    	</td>	
+  </tr>
+  <tr>
+  	<td><input type="radio" ng-change="handleSelection()" ng-checked="{{choices[1].default}}" name="radiobtn" ng-model="algorithm.value" value="{{choices[1].name}}"/></td>
+    <td>PageRank</td>
+    <td>
+    		<input ng-model="prValue" type="text" slider options="options" /> 
+    		<div class="slider-label-center"> alpha(/100)  </div>
+    	</td>	
+  </tr>
+  <tr>
+  	<td><input type="radio" ng-change="handleSelection()" ng-checked="{{choices[2].default}}" name="radiobtn" ng-model="algorithm.value" value="{{choices[2].name}}"/></td>
+    <td>HITS</td>
+    <td>
+    		<input ng-model="hitsValue" type="text" slider options="options" /> 
+    		<div class="slider-label-center"> alpha  </div>
+    	</td>	
+  </tr>
+  <tr>
+  	<td><input type="radio" ng-change="handleSelection()" name="radiobtn" ng-model="algorithm.value" value="{{choices[3].name}}"/></td>
+    <td>Community Aware PageRank</td>
+   <td>
+    		<input ng-model="CaPrValue" type="text" slider options="options" /> 
+    		<div class="slider-label"> <div class="left-label">INTRA</div> <div class="right-label">EXTRA</div>  </div>
+    	</td>	
+  </tr>
+  <tr>
+  	<td><input type="radio" ng-change="handleSelection()" name="radiobtn" ng-model="algorithm.value" value="{{choices[4].name}}"/></td>
+    <td>Community Aware HITS</td>
+    <td>
+    		<input ng-model="CAHitsValue" type="text" slider options="options" /> 
+    		<div class="slider-label"> <div class="left-label">INTRA</div> <div class="right-label">EXTRA</div>  </div>
+    	</td>	
+  </tr>
+</table>
+
+</div>

@@ -92,7 +92,6 @@ public class LuceneSearcher {
     public TopDocs performSearch(String queryString, int n) throws IOException, ParseException {
 	Query query = dataParser.parse(queryString);
 	TopDocs docs = dataSearcher.search(query, n);
-	System.out.println("No of HITS:: " + docs.totalHits);
 	maxNoOfResults = n;
 
 	return docs;
@@ -105,7 +104,6 @@ public class LuceneSearcher {
 				   // search(Experimental, can remote
 				   // queryString)
 	TopDocs docs = null;
-	System.out.println(tags);
 	try {
 	    Query terms = null;
 	    if (tags != null && tags.length() > 0) {

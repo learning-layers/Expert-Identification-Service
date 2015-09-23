@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.gson.Gson;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.stmt.PreparedQuery;
@@ -103,11 +104,11 @@ public class DatabaseHandler extends MySqlOpenHelper {
 		long id = 0;
 		try {
 		    id = Long.parseLong(res.getOwnerUserId());
-		} catch(NumberFormatException e) {
+		} catch (NumberFormatException e) {
 		    // This can be improved. Generate unique number from string.
 		    id = res.getOwnerUserId().hashCode();
 		}
-		
+
 		data.setOwnerUserId(id);
 	    }
 
@@ -130,10 +131,8 @@ public class DatabaseHandler extends MySqlOpenHelper {
 		// reply by matching "Re:"
 		String text = res.getTitle();
 		if (text != null && text.startsWith("Re:")) {
-		    System.out.println("Ans:: " + text);
 		    data.setPostTypeId(2);
 		} else {
-		    System.out.println("Q:: " + text);
 		    data.setPostTypeId(1);
 		}
 
@@ -155,7 +154,7 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	    }
 
 	    DataDao.createIfNotExists(data);
-	    log.info("Created Data entity.");
+	    // log.info("Created Data entity.");
 
 	}
     }
@@ -180,39 +179,42 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	// Iterate tags and create DAO objects.
 	for (IUser user : users) {
 	    entity = new UserEntity();
+	    try {
+		if (user.getReputation() != null) {
+		    entity.setReputation(Long.parseLong(user.getReputation()));
+		}
 
-	    if (user.getReputation() != null) {
-		entity.setReputation(Long.parseLong(user.getReputation()));
+		if (user.getUserAccId() != null) {
+		    entity.setUserAccId(Long.parseLong(user.getUserAccId()));
+		}
+
+		if (user.getUserId() != null) {
+		    entity.setUserId(Long.parseLong(user.getUserId()));
+		}
+		if (user.getCreationDate() != null) {
+		    entity.setCreationDate(user.getCreationDate());
+		}
+		if (user.getAbtMe() != null) {
+		    entity.setAbtMe(user.getAbtMe());
+		}
+		if (user.getLocation() != null) {
+		    entity.setLocation(user.getLocation());
+		}
+
+		if (user.getUserName() != null && user.getUserName().length() > 0) {
+		    entity.setUserName(user.getUserName());
+		} else {
+		    entity.setUserName("anonymous");
+		}
+
+		if (user.getWebsiteUrl() != null) {
+		    entity.setWebsiteUrl(user.getWebsiteUrl());
+		}
+	    } catch (NumberFormatException e) {
+		log.info("Exception " + e);
 	    }
 
-	    if (user.getUserAccId() != null) {
-		entity.setUserAccId(Long.parseLong(user.getUserAccId()));
-	    }
-
-	    if (user.getUserId() != null) {
-		entity.setUserId(Long.parseLong(user.getUserId()));
-	    }
-	    if (user.getCreationDate() != null) {
-		entity.setCreationDate(user.getCreationDate());
-	    }
-	    if (user.getAbtMe() != null) {
-		entity.setAbtMe(user.getAbtMe());
-	    }
-	    if (user.getLocation() != null) {
-		entity.setLocation(user.getLocation());
-	    }
-
-	    if (user.getUserName() != null && user.getUserName().length() > 0) {
-		entity.setUserName(user.getUserName());
-	    } else {
-		entity.setUserName("anonymous");
-	    }
-
-	    if (user.getWebsiteUrl() != null) {
-		entity.setWebsiteUrl(user.getWebsiteUrl());
-	    }
-
-	    log.info("Creatting user entity...");
+	    // log.info("Creatting user entity...");
 	    UserDao.createIfNotExists(entity);
 	}
     }
@@ -448,7 +450,7 @@ public class DatabaseHandler extends MySqlOpenHelper {
 		    out.println(userId + "=" + size);
 		}
 	    } catch (IOException e) {
-		System.out.println("IO Exception " + e);
+		e.printStackTrace();
 	    }
 
 	} catch (SQLException e) {
@@ -469,12 +471,9 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	    for (DataEntity entity : dataEntities) {
 		String text = entity.getTitle();
 		updateBuilder.where().eq("post_id", entity.getPostId());
-		// System.out.println(entity.getTitle());
 		if (text != null && text.startsWith("Re:")) {
-		    // System.out.println("Its an Ans:: ");
 		    updateBuilder.updateColumnValue("post_type_id", 2);
 		} else {
-		    System.out.println("Q:: " + text);
 		    updateBuilder.updateColumnValue("post_type_id", 1);
 		}
 		updateBuilder.update();
@@ -551,7 +550,6 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
 	    updateBuilder.where().eq("userId", userId);
 	    if (noOfReplies > 200) {
-		System.out.println("He is an expert " + userId);
 		updateBuilder.updateColumnValue("probable_expert", true);
 	    } else {
 		updateBuilder.updateColumnValue("probable_expert", false);
@@ -576,7 +574,6 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	    Dao<DataEntity, Long> dataDao = DaoManager.createDao(super.getConnectionSource(), DataEntity.class);
 	    entity = dataDao.queryForId(postId);
 	} catch (SQLException e) {
-	    System.out.println("Error in getting post..." + e);
 	    e.printStackTrace();
 	    return "";
 	}
@@ -596,7 +593,6 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	    // AccDao.createIfNotExists(entity);
 	    AccDao.create(entity);
 	} catch (SQLException e) {
-	    System.out.println("Error in getting post..." + e);
 	    e.printStackTrace();
 	}
 
@@ -643,6 +639,27 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	    e.printStackTrace();
 	}
 
+    }
+
+    /**
+     * 
+     * @param userId
+     * @return
+     */
+    public String getUser(long userId) {
+	Dao<UserEntity, Long> userDao = null;
+	try {
+	    userDao = DaoManager.createDao(super.getConnectionSource(), UserEntity.class);
+	    UserEntity entity = userDao.queryForId(userId);
+
+	    Gson gson = new Gson();
+
+	    return gson.toJson(entity);
+	} catch (SQLException e) {
+	    e.printStackTrace();
+	}
+
+	return null;
     }
 
     public void saveClickPositions(String queryId, int position) {

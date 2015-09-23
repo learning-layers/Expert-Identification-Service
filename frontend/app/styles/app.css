@@ -1,0 +1,338 @@
+.form-container {
+	margin-top: 10px;
+	padding:10px;
+	width:100%;
+	height:200px;
+	background: #FAFAFA;
+	 border-style: solid;
+    border-width: 1px;
+    border-color: #C0C0C0;
+
+}
+
+/* datasets.html css */
+
+#choose-dataset-wrapper {
+	margin-top: 200px;
+	text-align: center;
+}
+
+.choose-dataset, .upload-dataset {
+	display: inline-block;
+}
+
+.choose-dataset-label {
+	float:left;
+	margin:10px;
+	margin-top:8px;
+}
+
+.dataset-options {
+	float:left;
+	margin:10px;
+}
+
+#upload-dataset-wrapper {
+	text-align: center;
+	margin-top: 70px;
+}
+
+.upload-dataset-label {
+	float:left;
+	margin:10px;
+	width:225px;
+}
+
+.upload-btn {
+	float:left;
+	height: 35px;
+	margin:10px;
+}
+#upload-users-dataset-wrapper {
+	margin-top: 20px;
+	text-align: center;
+}
+
+/*  search.html css */
+
+#search-top-container {
+	margin-top: 200px;
+	text-align: center;
+}
+
+.inner-container {
+	display: inline-block;
+}
+
+.datasetlabel {
+	float:left;
+}
+
+.datasetname {
+	margin-left: 10px;
+	float:left;	
+}
+
+.inputbox {
+	margin-top: 30px;
+}
+
+#tab-container{
+margin: 10px;
+}
+
+/* expert-details.html*/
+
+ol {
+	list-style-type:none;
+	overflow: scroll;
+	height: 100%;
+}
+.expert-details-container {
+	margin-top: 5px;
+	border: 1px;
+	border-style: solid;
+    border-color: #C0C0C0 #C0C0C0;
+    background: #FAFAFA;
+    height: 115px;
+    text-align: left;
+    padding-left: 5px;
+}
+.expert-interest-container {
+	border: 1px;
+	margin-top: 5px;
+	border-style: solid;
+    border-color: #C0C0C0 #C0C0C0;
+    background: #FAFAFA;
+    height: 115px;
+}
+
+.expert-label {
+	margin-left: 10px;
+	color: #00B2EF;
+}
+
+.headerlabel {
+	margin-top: 35px;
+	margin-left: 20px;
+	color: #00B2EF;
+}
+
+#expert-container {
+	text-align: center;
+	margin-top: 50px;
+	width: 100%;
+	height: 100%;
+	border: 1px;
+	border-color: #C0C0C0 #C0C0C0;
+	background: #FAFAFA;
+	border-style: solid;
+}
+
+.expert-list {
+	display: inline-block;
+}
+
+.expert-list-container {
+	height:95%;
+}
+
+.username {
+	text-align: left;
+	margin:5px;
+}
+
+.reputation {
+	text-align: left;
+	margin:5px;
+}
+
+.contactinfo {
+	text-align: left;
+	margin:5px;
+}
+
+.relatedPost {
+	text-align: left;
+	margin:5px;
+}
+
+/*visulaization.html*/
+
+#visulaization_wrapper {
+	width:600px;
+	height:250px;
+	text-align: center;
+	float:left;
+}
+
+#sigma-container {
+    max-width: 600px;
+    height: 500px;
+    
+  }
+.sigma-scene, .sigma-labels, .sigma-mouse {
+	top:200px;
+	left: 160px;
+	border: solid;
+	border-color: grey;
+}
+
+.vis-expert-container {
+	float:left;
+	text-align: center;
+	margin-top: 180px;
+	margin-left: 5px;
+	width: 500px;
+	height: 200px;	
+}
+
+/*
+.visulaization_container {
+	margin-top: 10px;
+	width: 700px;
+	height: 400px;
+	background: #C0C0C0;
+	display: inline-block;
+}*/
+
+.vis-expert-details {
+	display: inline-block;
+}
+
+/*evaluation.html*/
+.precision-container, .recall-container, .map-container, .rr-container, .ndcg-container, .elevenpt-container {
+	margin:10px;
+	font-size: 16pt;
+}
+
+.elevenpt-graph {
+	width:400px;
+	height:400px;
+	background: #C0C0C0;
+}
+
+/*settings.html*/
+#settings-table-container {
+	text-align: center;
+}
+
+.settings-table {
+	display: inline-block;
+	margin-top: 10px;
+}
+
+.slider-label-center {
+	text-align: center;
+}
+
+.left-label {
+	float:left;
+}
+
+.right-label {
+	float:right;
+}
+
+th, td {
+    border: 1px solid gray;
+    overflow: hidden;
+    width: 400px;
+    height:80px;
+    padding:10px;
+    text-align: center;
+}
+
+#evaluation-table-container {
+	text-align: center;
+}
+
+.evaluation-table {
+	display: inline-block;
+	margin-top: 10px;
+}
+
+.interestBtn {
+	margin-top: 4px;
+}
+
+
+
+
+/*LoginForm CSS starts */
+.form-signin
+{
+    max-width: 330px;
+    padding: 15px;
+    margin: 0 auto;
+}
+.form-signin .form-signin-heading, .form-signin .checkbox
+{
+    margin-bottom: 10px;
+}
+.form-signin .checkbox
+{
+    font-weight: normal;
+}
+.form-signin .form-control
+{
+    position: relative;
+    font-size: 16px;
+    height: auto;
+    padding: 10px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.form-signin .form-control:focus
+{
+    z-index: 2;
+}
+.form-signin input[type="text"]
+{
+    margin-bottom: -1px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.form-signin input[type="password"]
+{
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.account-wall
+{
+    margin-top: 20px;
+    padding: 40px 0px 20px 0px;
+    background-color: #f7f7f7;
+    -moz-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+    -webkit-box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+}
+.login-title
+{
+    color: #555;
+    font-size: 18px;
+    font-weight: 400;
+    display: block;
+}
+.profile-img
+{
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 10px;
+    display: block;
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+}
+.need-help
+{
+    margin-top: 10px;
+}
+.new-account
+{
+    display: block;
+    margin-top: 10px;
+}
+/*Login form css ends*/

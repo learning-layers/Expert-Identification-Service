@@ -30,11 +30,13 @@ public class PageRankStrategy extends AbstractSearcher implements ScoreStrategy 
     /**
      * 
      * @param parameters
+     *            Parameters for the algorithms.
      * @throws ERSException
+     *             An exception is thrown if things fail during connect, analyse
+     *             and searching the index.
      */
     public PageRankStrategy(ERSBundle parameters) throws ERSException {
 	super(parameters);
-	// this.alpha = super.requestParameters.alpha;
     }
 
     @Override
@@ -62,13 +64,10 @@ public class PageRankStrategy extends AbstractSearcher implements ScoreStrategy 
     public void saveResults() {
 	expert2score = Application.sortByValue(node2pagescore);
 
-	int count = 0;
 	JSONArray jsonArray = new JSONArray();
 
 	for (String userid : expert2score.keySet()) {
-	    count++;
-	    // Restrict result to 10 items for now.
-	    if (count < 10) {
+	    if (super.MAX_RESULTS > 0) {
 		UserEntity user = super.usermap.get(Long.parseLong(userid));
 		user.setScore(node2pagescore.get(userid));
 
@@ -81,6 +80,7 @@ public class PageRankStrategy extends AbstractSearcher implements ScoreStrategy 
 	    } else {
 		break;
 	    }
+	    super.MAX_RESULTS--;
 	}
 
 	experts = jsonArray.toJSONString();

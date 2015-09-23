@@ -57,6 +57,8 @@ public abstract class AbstractSearcher {
     protected ERSBundle requestParameters = null;
     protected GraphWriter graphWriter = null;
 
+    public int MAX_RESULTS = 10;
+
     /**
      * 
      * @param requestParameters
@@ -101,7 +103,6 @@ public abstract class AbstractSearcher {
 
 	Application.algoName = requestParameters.algorithmName;
 	// Application.intraWeight = intraWeight;
-	System.out.println("Intra weight:: " + Application.intraWeight);
 	dbHandler.truncateEvaluationTable();
     }
 

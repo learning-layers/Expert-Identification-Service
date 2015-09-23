@@ -38,8 +38,8 @@ import i5.las2peer.services.servicePackage.mapper.TextMapper;
 import i5.las2peer.services.servicePackage.metrics.EvaluationMeasure;
 import i5.las2peer.services.servicePackage.parsers.ERSCSVParser;
 import i5.las2peer.services.servicePackage.parsers.ERSJsonParser;
-import i5.las2peer.services.servicePackage.parsers.ERSXmlParser;
 import i5.las2peer.services.servicePackage.parsers.User;
+import i5.las2peer.services.servicePackage.parsers.XMLParser;
 import i5.las2peer.services.servicePackage.parsers.csvparser.UserCSV;
 import i5.las2peer.services.servicePackage.scorer.CommunityAwareHITSStrategy;
 import i5.las2peer.services.servicePackage.scorer.CommunityAwarePageRankStrategy;
@@ -108,7 +108,7 @@ public class ExpertRecommenderService extends Service {
     @GET
     @Path("datasets")
 
-    @ResourceListApi(description = "Get available dataset on the server")
+    @ResourceListApi(description = "Get all the available datasets on the server.")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
@@ -255,20 +255,21 @@ public class ExpertRecommenderService extends Service {
     /**
      * 
      * @param datasetId
+     *            Id of the dataset.
      * @param query
-     * @param dateBefore
+     *            String value for the query
      * @param alpha
+     *            floating number to adjust semantics and term analysis weight.
      * @return
      */
     @POST
     @Path("datasets/{datasetId}/algorithms/datamodeling")
-    @ResourceListApi(description = "Get the visualization graph")
+    @ResourceListApi(description = "Apply data modeling technique")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
     @Summary("Returns the id of the expert collection.")
     public HttpResponse modelExperts(@PathParam("datasetId") String datasetId, @ContentParam String query,
-	    @QueryParam(name = "dateBefore", defaultValue = "2025-12-31") String dateBefore,
 	    @QueryParam(name = "alpha", defaultValue = "0.5") double alpha) {
 
 	Application.algoName = "datamodeling";
@@ -321,15 +322,15 @@ public class ExpertRecommenderService extends Service {
 
 	try {
 
-	    LuceneSearcher searcher = new LuceneSearcher(qAnalyzer.getText(), databaseName + "_index");
+	    LuceneSearcher searcher = new LuceneSearcher(qAnalyzer.getText(), getIndexDirectory(datasetId));
 	    TopDocs docs = searcher.performSearch(qAnalyzer.getText(), Integer.MAX_VALUE);
 
 	    dbTextIndexer = new TextMapper(searcher.getTotalNumberOfDocs());
-	    dbTextIndexer.buildMaps(docs, qAnalyzer.getText(), databaseName + "_index");
+	    dbTextIndexer.buildMaps(docs, qAnalyzer.getText(), getIndexDirectory(datasetId));
 
 	    dbSemanticsIndexer = new SematicsMapper(dbHandler.getConnectionSource());
 	    TopDocs semanticDocs = searcher.performSemanticSearch();
-	    dbSemanticsIndexer.buildIndex(semanticDocs, qAnalyzer.getText(), databaseName + "_index");
+	    dbSemanticsIndexer.buildIndex(semanticDocs, qAnalyzer.getText(), getIndexDirectory(datasetId));
 
 	    ScoringContext scontext = new ScoringContext(new DataModelingStrategy(dbTextIndexer, dbSemanticsIndexer, usermap, alpha));
 	    scontext.executeStrategy();
@@ -396,8 +397,9 @@ public class ExpertRecommenderService extends Service {
 	    @QueryParam(name = "visualization", defaultValue = "true") boolean isVisualization,
 	    @QueryParam(name = "alpha", defaultValue = "0.15d") String alpha, @QueryParam(name = "intra", defaultValue = "0.6") String intraWeight) {
 
-	ERSBundle properties = new ERSBundle.Builder(datasetId, query, algorithmName).alpha(alpha).intraWeight(intraWeight).isEvaluation(false)
-		.isVisualization(true).build();
+	ERSBundle properties = new ERSBundle.Builder(datasetId, query, algorithmName).alpha(alpha).intraWeight(intraWeight)
+		.isEvaluation(isEvaluation)
+		.isVisualization(isVisualization).build();
 
 	ScoreStrategy strategy = null;
 	ScoringContext scontext = null;
@@ -538,7 +540,7 @@ public class ExpertRecommenderService extends Service {
 	try {
 	    dbHandler.addSemanticTags();
 	} catch (Exception e) {
-	    res = new HttpResponse(ERSMessage.ADD_SEMANTICS_FAILURE, 200);
+	    res = new HttpResponse(ERSMessage.ADD_SEMANTICS_FAILURE, 201);
 	    return res;
 	}
 
@@ -555,7 +557,7 @@ public class ExpertRecommenderService extends Service {
      * @return
      */
     @POST
-    @ResourceListApi(description = "Creates all the required database tables.")
+    @ResourceListApi(description = "Creates all the required tables required for the dataset and recommendation service.")
     @Path("datasets/{databaseName}/prepare")
     public HttpResponse prepareDataset(@PathParam("databaseName") String databaseName, @ContentParam String displayName) {
 
@@ -635,7 +637,7 @@ public class ExpertRecommenderService extends Service {
 	} catch (UnsupportedEncodingException e) {
 	    e.printStackTrace();
 	}
-	log.info(fileContentsString);
+	// log.info(fileContentsString);
 
 	HttpResponse res = new HttpResponse(fileContentsString, 200);
 	res.setHeader("content-type", "text/xml");
@@ -663,7 +665,7 @@ public class ExpertRecommenderService extends Service {
     public HttpResponse parse(@PathParam("datasetId") String id, @ContentParam String urlObject,
 	    @QueryParam(name = "format", defaultValue = "xml") String type) {
 
-	log.info("URL::" + urlObject);
+	// log.info("URL::" + urlObject);
 	HttpResponse res = null;
 
 	String databaseName = getDatabaseName(id);
@@ -687,8 +689,11 @@ public class ExpertRecommenderService extends Service {
 	try {
 	    if (type.equalsIgnoreCase("xml")) {
 		log.info("Executing XML Parser...");
-		ERSXmlParser xmlparser = new ERSXmlParser(path);
+		XMLParser xmlparser = new XMLParser(path);
+		xmlparser.parseData();
 		dbHandler.addPosts(xmlparser.getPosts());
+
+		xmlparser.parseUserData();
 		dbHandler.addUsers(xmlparser.getUsers());
 	    } else if (type.equalsIgnoreCase("csv")) {
 		log.info("Executing CSV Parser...");
@@ -807,6 +812,20 @@ public class ExpertRecommenderService extends Service {
 	    e.printStackTrace();
 	}
 	return result;
+    }
+
+    @GET
+    @Path("datasets/{datasetId}/users/{userId}")
+    public HttpResponse getUser(@PathParam("userId") String userId) {
+
+	System.out.println("expertsId:: " + userId);
+	DatabaseHandler dbHandler = null;
+	dbHandler = new DatabaseHandler("healthcare", "root", "");
+	String userDetails = dbHandler.getUser(Long.parseLong(userId));
+
+	HttpResponse res = new HttpResponse(userDetails);
+	res.setStatus(200);
+	return res;
     }
 
     @POST

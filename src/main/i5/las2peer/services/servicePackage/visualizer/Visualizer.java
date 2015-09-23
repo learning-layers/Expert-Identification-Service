@@ -31,19 +31,6 @@ public class Visualizer {
 	    converter.applyLayout();
 	    converter.export("visgraph");
 
-	    // try {
-	    // Dao<GraphEntity, Long> visulaizationDao =
-	    // DaoManager.createDao(connSrc, GraphEntity.class);
-	    // visEntity = visulaizationDao.queryForId(queryId);
-	    //
-	    // String graphContent =
-	    // LocalFileManager.getFile("visgraph.gexf").toString();
-	    // visEntity.setVisGraph(graphContent);
-	    //
-	    // } catch (SQLException e) {
-	    // e.printStackTrace();
-	    // }
-
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}

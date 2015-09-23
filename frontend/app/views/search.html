@@ -1,0 +1,57 @@
+<div class="form-container">
+		<h5 class="col-lg-10 col-md-offset-1" >Select Dataset</h5>
+		<div class="col-lg-10 col-md-offset-1">
+			<div ng-controller="DropdownCtrl">
+				 <div class="btn-group btn-group-justified">
+				<div class="btn-group" dropdown is-open="status.isopen">
+					<button type="button" class="input-block-level btn btn-default dropdown-toggle" dropdown-toggle ng-disabled="disabled">
+						{{selectedItem.name}} <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu">
+						<li ng-click="handleSelection($index)" ng-repeat="item in items">
+							<a href="#">{{item.name}}</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+			</div>
+		</div>
+
+
+		<div class="col-lg-10 col-md-offset-1" id="inputbox-container">
+			<div class="inputbox input-group">
+				<input type="text" class="form-control" ng-model="query.text" placeholder="Enter your search query here...">
+				<span class="input-group-btn">
+					<button class="btn btn-default" type="button" ng-click="handleClick()">Find Experts</button>
+				</span>
+			</div>
+		</div>
+
+</div>
+
+<h3 class="col-lg-12 expert-label">List of Experts </h3>
+
+<div id="expert-container">
+	<ol ng-show="!showUnavailableText" class=" expert-list-container col-lg-12 " >
+		<li class="col-lg-12 " ng-repeat="expert in experts">
+			<div class="col-lg-12" >
+			<div class="expert-details-container col-lg-8" >
+				<div class="username"><h5>Name: {{expert.userName}}<h5></div>
+				<div class="reputation"><h5>Reputation: {{expert.reputation}}</h5></div>
+				<div class="contactinfo"><h5>ContactInfo: {{expert.websiteUrl}}</h5></div>
+				<a  ng-if="!expert.relatedPostLabel" href="#" class="relatedPost pull-left" ng-click="handleShowPostClick(expert)">Show Related Posts</a>
+				<a  ng-if="expert.relatedPostLabel" href="#" class="relatedPost pull-left" ng-click="handleShowPostClick(expert)">{{expert.relatedPostLabel}}</a>
+				<a  ng-hide="expert.relevantExpert" href="#" class="relatedPost pull-right" ng-click="handleRelevantPostClick(expert)">Expert is relevant</a>
+			</div>
+
+			<div class="col-lg-4 expert-interest-container pull-right">
+					<button ng-hide="expert.hide" class="interestBtn btn btn-default" type="button" ng-click="handleExpertInterestClick(expert)">Get Experts interested topics</button>
+					<div ng-hide="!expert.hide">{{expert.interests}}</div>
+			</div>
+
+			</div>
+			<div ng-show="expert.showRelatedPosts"><h3>Answers by the {{expert.userName}} on related topics to your query: </h3><p ng-bind-html="relatedPosts"></p></div>
+		</li>
+	</ol>
+	<div ng-show="showUnavailableText"><h3>Sorry, No results available. Try few other keywords.</h3></div>
+</div>

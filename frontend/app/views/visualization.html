@@ -1,0 +1,21 @@
+<div class="vis_container">
+	<div id="visulaization_wrapper">
+		<div id="sigma-container" class="visulaization_container"></div>
+	</div>
+
+<div class="vis-expert-container">
+	
+		<div ng-model="item" class="expert-details-container">
+			<div><h5>UserID: {{item.userId}}<h5></div>
+			<div><h5>Name: {{item.userName}}<h5></div>
+			<div><h5>Reputation: {{item.reputation}}</h5></div>
+			<div><h5>ContactInfo: {{item.websiteUrl}}</h5></div>
+		</div>
+		<div class="expert-interest-container">
+			<div><h5>Interested / Experts in topics:</h5></div>
+					<button ng-hide="item.hide" class="interestBtn btn btn-default" type="button" ng-click="handleExpertInterestClick(item)">Get Experts interested topics</button>
+					<div ng-hide="!item.hide">{{item.interests}}</div>
+		</div>
+	
+</div>
+</div>

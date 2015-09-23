@@ -1,0 +1,24 @@
+<div id="choose-dataset-wrapper">  
+<div class="choose-dataset">
+	<div class="choose-dataset-label"> <h4>Choose existing dataset: </h4></div> 
+	<div class="dataset-options" ng-controller="DropdownCtrl">
+		<div class="btn-group" dropdown is-open="status.isopen">
+     	 <button type="button" class="btn btn-primary dropdown-toggle" dropdown-toggle ng-disabled="disabled">
+        	{{selectedItem.name}} <span class="caret"></span>
+      	</button>
+      	<ul class="dropdown-menu">
+        <li ng-click="handleSelection($index)" ng-repeat="item in items">
+          <a href="#">{{item.name}}</a>
+        </li>
+      </ul>
+    	</div>
+	</div>
+	</div>
+</div>
+
+<div id="upload-dataset-wrapper">  
+<div class="upload-dataset">
+	<div class="upload-dataset-label"> <h4> Upload dataset: </h4></div> 
+	<button class="upload-btn btn btn-default btn-sm" >Upload data file...</button>
+</div>
+</div>

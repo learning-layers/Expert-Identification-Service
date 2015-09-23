@@ -51,8 +51,8 @@ public class User implements IUser {
 	userId = userid;
     }
 
-    public String setWebsiteUrl() {
-	return websiteUrl;
+    public void setWebsiteUrl(String url) {
+	websiteUrl = url;
     }
 
     public String getUserAccId() {

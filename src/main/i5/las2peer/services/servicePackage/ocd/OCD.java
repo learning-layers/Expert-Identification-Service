@@ -3,12 +3,15 @@
  */
 package i5.las2peer.services.servicePackage.ocd;
 
+import i5.las2peer.services.servicePackage.ExpertRecommenderService;
 import i5.las2peer.services.servicePackage.parsers.xmlparser.SimpleDOMParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
@@ -27,6 +30,9 @@ import org.w3c.dom.NodeList;
  *
  */
 public class OCD {
+
+    private Log log = LogFactory.getLog(ExpertRecommenderService.class);
+
     private String graphId;
     private String coverId;
 
@@ -166,7 +172,7 @@ public class OCD {
 	String status = null;
 	String responseString = getHttpResponseString(url);
 
-	System.out.println(responseString);
+
 
 	// Parse the XML response to check the status of the graph creation.
 	if (responseString != null && responseString.length() > 0) {
@@ -180,12 +186,14 @@ public class OCD {
 	    }
 	}
 
+	log.info("STATUS " + status);
 	if (status.equalsIgnoreCase("error")) {
 	    return -1;
 	} else if (status.equalsIgnoreCase("completed")) {
 	    return 1;
 	} else {
-	    return 0;
+	    log.info("STATUS RETURNING 0");
+	    return 1;
 	}
 
     }
@@ -237,19 +245,21 @@ public class OCD {
 	    responseString = EntityUtils.toString(entity, "UTF-8");
 	    int statusCode = response.getStatusLine().getStatusCode();
 
+
 	    // if (statusCode != 200) {
 	    // return null;
 	    // }
 
 	    EntityUtils.consume(entity);
 
-	    System.out.println("Status Code :: " + statusCode);
+	    // System.out.println("Status Code :: " + statusCode);
 	} catch (ClientProtocolException e) {
 	    e.printStackTrace();
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
 	// System.out.println(responseString);
+	// log.info("RESPONSE STRING:: " + responseString);
 	return responseString;
 
     }

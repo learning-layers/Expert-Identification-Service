@@ -9,7 +9,8 @@
     <method httpMethod="post" name="parse" path="datasets/{datasetId}/parse" type="i5.las2peer.restMapper.HttpResponse">
       <parameters>
         <parameter annotation="path" index="0" name="datasetId" type="java.lang.String"/>
-        <parameter annotation="query" default="xml" index="1" name="format" type="java.lang.String"/>
+        <parameter annotation="content" index="1" name="" type="java.lang.String"/>
+        <parameter annotation="query" default="xml" index="2" name="format" type="java.lang.String"/>
       </parameters>
     </method>
     <method httpMethod="get" name="getAvailableDatasets" path="datasets" produces="application/json" type="i5.las2peer.restMapper.HttpResponse">
@@ -32,15 +33,14 @@
         <parameter annotation="path" index="0" name="visualizationId" type="java.lang.String"/>
       </parameters>
     </method>
-    <method consumes="text/plain" httpMethod="post" name="modelExperts" path="datasets/{datasetId}/algorithms/datamodeling" produces="application/json" type="i5.las2peer.restMapper.HttpResponse">
+    <method consumes="application/json" httpMethod="post" name="modelExperts" path="datasets/{datasetId}/algorithms/datamodeling" produces="application/json" type="i5.las2peer.restMapper.HttpResponse">
       <parameters>
         <parameter annotation="path" index="0" name="datasetId" type="java.lang.String"/>
         <parameter annotation="content" index="1" name="" type="java.lang.String"/>
-        <parameter annotation="query" default="2025-12-31" index="2" name="dateBefore" type="java.lang.String"/>
-        <parameter annotation="query" default="0.5" index="3" name="alpha" type="double"/>
+        <parameter annotation="query" default="0.5" index="2" name="alpha" type="double"/>
       </parameters>
     </method>
-    <method consumes="text/plain" httpMethod="post" name="applyAlgorithm" path="datasets/{datasetId}/algorithms/{algorithmName}" produces="application/json" type="i5.las2peer.restMapper.HttpResponse">
+    <method consumes="application/json" httpMethod="post" name="applyAlgorithm" path="datasets/{datasetId}/algorithms/{algorithmName}" produces="application/json" type="i5.las2peer.restMapper.HttpResponse">
       <parameters>
         <parameter annotation="path" index="0" name="datasetId" type="java.lang.String"/>
         <parameter annotation="path" index="1" name="algorithmName" type="java.lang.String"/>
@@ -58,7 +58,7 @@
         <parameter annotation="path" index="2" name="expertId" type="java.lang.String"/>
       </parameters>
     </method>
-    <method httpMethod="get" name="getPosts" path="datasets/{datasetId}/experts/{expertsCollectionId}/expert/{expertId}/posts" produces="application/json" type="i5.las2peer.restMapper.HttpResponse">
+    <method httpMethod="get" name="getPosts" path="datasets/{datasetId}/experts/{expertsCollectionId}/expert/{expertId}/posts" type="i5.las2peer.restMapper.HttpResponse">
       <parameters>
         <parameter annotation="path" index="0" name="datasetId" type="java.lang.String"/>
         <parameter annotation="path" index="1" name="expertsCollectionId" type="java.lang.String"/>
@@ -79,6 +79,11 @@
     <method httpMethod="get" name="getGraph" path="download/{filename}" type="i5.las2peer.restMapper.HttpResponse">
       <parameters>
         <parameter annotation="path" index="0" name="filename" type="java.lang.String"/>
+      </parameters>
+    </method>
+    <method httpMethod="get" name="getUser" path="datasets/{datasetId}/users/{userId}" type="i5.las2peer.restMapper.HttpResponse">
+      <parameters>
+        <parameter annotation="path" index="0" name="userId" type="java.lang.String"/>
       </parameters>
     </method>
     <method httpMethod="post" name="saveClickPositions" path="datasets/{datasetId}/position" type="void">

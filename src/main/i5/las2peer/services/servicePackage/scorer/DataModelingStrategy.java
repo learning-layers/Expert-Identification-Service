@@ -44,24 +44,12 @@ public class DataModelingStrategy implements ScoreStrategy {
 
     @Override
     public void executeAlgorithm() {
-	System.out.println("Ranking the res.." + mTextIndexer.getTokenMap().entries().size());
 	try {
 	    for (Map.Entry entry : mTextIndexer.getTokenMap().entries()) {
 		long postid = (Long) entry.getKey();
 		// Set the title of the post that is associated with the user.
 		if (mTextIndexer.getPostId2UserIdMap().containsKey(postid)) {
 		    long userid = mTextIndexer.getPostId2UserIdMap().get(postid);
-		    UserEntity user = userId2userObj.get(userid);
-		    if (userid > 0 && user != null) {
-			// user.setRelatedPost(postid);
-			// Set termObjs = TERM_FREQ_MAP.get(postid);
-			// if (termObjs.size() > 0) {
-			// Resource res = (Resource) termObjs.iterator().next();
-			// user.setTitle(res.getText());
-		    } else {
-			// user.setTitle("Title is empty");
-		    }
-
 		    double sum = 0;
 		    double termFreq_inverseResFreq = mTextIndexer.getTfIrfMap().get(postid);
 
@@ -79,7 +67,6 @@ public class DataModelingStrategy implements ScoreStrategy {
 		    userId2score.put(userid, sum);
 		    userId2postIds.put(userid, postid);
 
-		    System.out.println("SUM::" + sum);
 		}
 	    }
 
