@@ -677,27 +677,41 @@ public class ExpertRecommenderService extends Service {
 	    }
 	}
 
-	String path = null;
+	boolean isLocal = false;
+	String postsPath = null;
+	String usersPath = null;
 	if (!TextUtils.isEmpty(urlObject)) {
-	    path = urlObject;
+	    String[] urls = urlObject.split(",");
+	    postsPath = urls[0];
+	    usersPath = urls[1];
 	} else {
-	    path = "datasets/" + databaseName;
+	    isLocal = true;
+	    postsPath = "datasets/" + databaseName + "/posts.xml";
+	    usersPath = "datasets/" + databaseName + "/users.xml";
 	}
+
+	log.info(postsPath);
+	log.info(usersPath);
 
 	DatabaseHandler dbHandler = new DatabaseHandler(databaseName, "root", "");
 
 	try {
 	    if (type.equalsIgnoreCase("xml")) {
 		log.info("Executing XML Parser...");
-		XMLParser xmlparser = new XMLParser(path);
-		xmlparser.parseData();
+		XMLParser xmlparser = new XMLParser();
+		xmlparser.parseData(postsPath, isLocal);
 		dbHandler.addPosts(xmlparser.getPosts());
 
-		xmlparser.parseUserData();
+		xmlparser.parseUserData(usersPath, isLocal);
 		dbHandler.addUsers(xmlparser.getUsers());
 	    } else if (type.equalsIgnoreCase("csv")) {
+
 		log.info("Executing CSV Parser...");
-		ERSCSVParser csvparser = new ERSCSVParser(path);
+		// User details are extracted from posts data file itself.
+		// (data.csv)
+
+		postsPath = "datasets/" + databaseName + "/data.csv";
+		ERSCSVParser csvparser = new ERSCSVParser(postsPath);
 		dbHandler.addPosts(csvparser.getPosts());
 		List<UserCSV> users = csvparser.getUsers();
 
@@ -706,7 +720,8 @@ public class ExpertRecommenderService extends Service {
 		}
 	    } else if (type.equalsIgnoreCase("json")) {
 		log.info("Executing Json Parser...");
-		ERSJsonParser jsonparser = new ERSJsonParser(path);
+
+		ERSJsonParser jsonparser = new ERSJsonParser(postsPath);
 		dbHandler.addPosts(jsonparser.getPosts());
 		List<User> users = jsonparser.getUsers();
 		if (users != null && users.size() > 0) {

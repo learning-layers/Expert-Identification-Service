@@ -6,6 +6,7 @@ package i5.las2peer.services.servicePackage.parsers;
 import i5.las2peer.services.servicePackage.parsers.xmlparser.DataField;
 import i5.las2peer.services.servicePackage.parsers.xmlparser.UserField;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +15,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.http.util.TextUtils;
+import org.jfree.util.Log;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -28,22 +30,17 @@ public class XMLParser implements IParser<List<Post>, List<User>> {
     private List<User> users = null;
 
     private HashMap<String, String> field2Value = new HashMap<String, String>();
-    private String postsFilePath;
-    private String usersFilePath;
+    private String postsPath;
+    private String usersPath;
 
-    private static final String DATA_FILENAME = "posts.xml";
-    private static final String USER_FILENAME = "users.xml";
-
-    public XMLParser(String dirPath) {
+    public XMLParser() {
 	posts = new ArrayList<Post>();
 	users = new ArrayList<User>();
 
-	postsFilePath = dirPath + "/" + DATA_FILENAME;
-	usersFilePath = dirPath + "/" + USER_FILENAME;
-
     }
 
-    public void parseData() {
+    public void parseData(String path, boolean isLocal) {
+	postsPath = path;
 	try {
 
 	    final DataField dataField = new ParameterExtractor().extractDataFields();
@@ -106,7 +103,13 @@ public class XMLParser implements IParser<List<Post>, List<User>> {
 
 	    };
 
-	    saxParser.parse(postsFilePath, handler);
+	    if (isLocal) {
+		saxParser.parse(postsPath, handler);
+	    } else {
+		Log.info("POST PATH " + postsPath);
+		URL postsUrl = new URL(postsPath);
+		saxParser.parse(postsUrl.openStream(), handler);
+	    }
 
 	} catch (Exception e) {
 	    e.printStackTrace();
@@ -114,7 +117,8 @@ public class XMLParser implements IParser<List<Post>, List<User>> {
 
     }
 
-    public void parseUserData() {
+    public void parseUserData(String path, boolean isLocal) {
+	usersPath = path;
 	try {
 	    final UserField userdataField = new ParameterExtractor().extractUserFields();
 
@@ -172,7 +176,13 @@ public class XMLParser implements IParser<List<Post>, List<User>> {
 
 	    };
 
-	    saxParser.parse(usersFilePath, handler);
+	    if (isLocal) {
+		saxParser.parse(usersPath, handler);
+	    } else {
+		URL postsUrl = new URL(usersPath);
+		saxParser.parse(postsUrl.openStream(), handler);
+	    }
+
 	} catch (Exception e) {
 	    e.printStackTrace();
 	}
