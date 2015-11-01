@@ -11,6 +11,8 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.jdbc.JdbcDatabaseConnection;
 import com.j256.ormlite.support.ConnectionSource;
 
+import i5.las2peer.services.servicePackage.utils.PropertySupplier;
+
 /**
  * An abstract MySQL helper class to create database and to get connection
  * source, required by ORMLite methods for CRUD operations.
@@ -19,8 +21,7 @@ import com.j256.ormlite.support.ConnectionSource;
  *
  */
 public abstract class MySqlOpenHelper {
-    private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/";
-
+    private String mDbUrl;
     private String mUserName;
     private String mPassword;
     private String mDbName;
@@ -28,10 +29,11 @@ public abstract class MySqlOpenHelper {
     private JdbcDatabaseConnection mJdbConnection;
     private Connection sqlConnection;
 
-    public MySqlOpenHelper(String dbName, String username, String password) {
-	mDbName = dbName;
-	mUserName = username;
-	mPassword = password;
+    public MySqlOpenHelper() {
+    mDbUrl = PropertySupplier.getProperty("jdbc.url");
+	mDbName = PropertySupplier.getProperty("jdbc.name");
+	mUserName = PropertySupplier.getProperty("jdbc.username");;
+	mPassword = PropertySupplier.getProperty("jdbc.password");;
 
 	createDatabase();
     }
@@ -39,7 +41,7 @@ public abstract class MySqlOpenHelper {
     private void createDatabase() {
 	try {
 	    close();
-	    sqlConnection = DriverManager.getConnection(DB_URL, mUserName, mPassword);
+	    sqlConnection = DriverManager.getConnection(mDbUrl, mUserName, mPassword);
 	    mJdbConnection = new JdbcDatabaseConnection(sqlConnection);
 	    mJdbConnection.executeStatement("CREATE DATABASE IF NOT EXISTS " + mDbName, -1);
 	} catch (SQLException e) {
@@ -59,7 +61,7 @@ public abstract class MySqlOpenHelper {
 	    if (mConnectionSource != null && mConnectionSource.isOpen()) {
 		return mConnectionSource;
 	    } else {
-		mConnectionSource = new JdbcConnectionSource(DB_URL + mDbName);
+		mConnectionSource = new JdbcConnectionSource(mDbUrl + mDbName);
 		((JdbcConnectionSource) mConnectionSource).setUsername(mUserName);
 		((JdbcConnectionSource) mConnectionSource).setPassword(mPassword);
 	    }

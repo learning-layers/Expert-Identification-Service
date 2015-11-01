@@ -3,6 +3,7 @@
  */
 package i5.las2peer.services.servicePackage.metrics;
 
+import i5.las2peer.services.servicePackage.database.DatabaseHandler;
 import i5.las2peer.services.servicePackage.database.entities.EvaluationMetricsEntity;
 import i5.las2peer.services.servicePackage.database.entities.UserEntity;
 
@@ -108,7 +109,7 @@ public class EvaluationMeasure {
 	rr.compute();
     }
 
-    public void save(long queryId, ConnectionSource connSrc) throws JsonIOException, JsonSyntaxException, IOException {
+    public void save(String databaseName, long queryId, ConnectionSource connSrc) throws JsonIOException, JsonSyntaxException, IOException {
 
 	JsonObject jContainer = new JsonObject();
 	JsonObject metricsObj = new JsonObject();
@@ -195,7 +196,9 @@ public class EvaluationMeasure {
 	String evaluationMeasures = jContainer.toString();
 
 	try {
-	    Dao<EvaluationMetricsEntity, Long> EvaluationDao = DaoManager.createDao(connSrc, EvaluationMetricsEntity.class);
+		DatabaseHandler dbHandler = new DatabaseHandler();
+
+	    Dao<EvaluationMetricsEntity, Long> EvaluationDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, EvaluationMetricsEntity.class, databaseName) );
 
 	    evaluationEntity = new EvaluationMetricsEntity();
 	    evaluationEntity.setQueryId(queryId);

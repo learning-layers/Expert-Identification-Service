@@ -3,6 +3,7 @@
  */
 package i5.las2peer.services.servicePackage.utils;
 
+import i5.las2peer.services.servicePackage.database.DatabaseHandler;
 import i5.las2peer.services.servicePackage.database.entities.UserEntity;
 
 import java.sql.SQLException;
@@ -36,8 +37,10 @@ public class UserMapSingleton {
 	return instance;
     }
 
-    public Map<Long, UserEntity> getUserMap(ConnectionSource connectionSource) throws SQLException {
-	Dao<UserEntity, Long> userDao = DaoManager.createDao(connectionSource, UserEntity.class);
+    public Map<Long, UserEntity> getUserMap(String databaseName, ConnectionSource connectionSource) throws SQLException {
+	DatabaseHandler dbHandler = new DatabaseHandler();
+
+    Dao<UserEntity, Long> userDao = DaoManager.createDao(connectionSource, dbHandler.getEntityConfigOfDataSet(connectionSource, UserEntity.class, databaseName) );
 	List<UserEntity> user_entites = userDao.queryForAll();
 	for (UserEntity entity : user_entites) {
 	    userId2userObj.put(entity.getUserId(), entity);

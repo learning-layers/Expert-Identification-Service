@@ -3,7 +3,6 @@
 	<classpathentry kind="src" path="src/main"/>
 	<classpathentry kind="src" path="src/test"/>
 	<classpathentry kind="lib" path="etc/ivy/ivy.jar"/>
-	<classpathentry kind="lib" path="service/${service.name}-${service.version}.jar"/>
 	<classpathentry kind="lib" path="service/i5.las2peer.services.servicePackage-0.1.jar"/>
 	<classpathentry kind="lib" path="lib/activation-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/asm-4.0.jar"/>
@@ -52,5 +51,5 @@
 	<classpathentry kind="lib" path="lib/ormlite-jdbc-4.48.jar"/>
 	<classpathentry kind="lib" path="lib/xpp3-1.1.4c.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

@@ -3,6 +3,7 @@
  */
 package i5.las2peer.services.servicePackage.graph;
 
+import i5.las2peer.services.servicePackage.database.DatabaseHandler;
 import i5.las2peer.services.servicePackage.database.entities.GraphEntity;
 import i5.las2peer.services.servicePackage.utils.LocalFileManager;
 
@@ -99,9 +100,11 @@ public class GraphWriter {
 	return new String(LocalFileManager.getFile(filename));
     }
 
-    public void saveToDb(long queryId, ConnectionSource connSrc) {
+    public void saveToDb(String databaseName, long queryId, ConnectionSource connSrc) {
 	try {
-	    Dao<GraphEntity, Long> graphDao = DaoManager.createDao(connSrc, GraphEntity.class);
+		DatabaseHandler dbHandler = new DatabaseHandler();
+		
+	    Dao<GraphEntity, Long> graphDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, GraphEntity.class, databaseName) );
 
 	    graphEntity = new GraphEntity();
 	    graphEntity.setQueryId(queryId);

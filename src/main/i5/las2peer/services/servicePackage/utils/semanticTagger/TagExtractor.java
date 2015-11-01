@@ -5,6 +5,8 @@ package i5.las2peer.services.servicePackage.utils.semanticTagger;
 
 import i5.las2peer.services.servicePackage.database.DatabaseHandler;
 import i5.las2peer.services.servicePackage.utils.Application;
+import i5.las2peer.services.servicePackage.utils.ERSMessage;
+import i5.las2peer.services.servicePackage.utils.ExceptionMessages;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,10 +27,12 @@ public class TagExtractor {
     String expertId;
     DatabaseHandler dbHandler;
     String expertCollectionId;
+    String databaseName;
 
     int maxCount = 5;
 
-    public TagExtractor(DatabaseHandler dbHandler, String expertCollectionId, String expertId) {
+    public TagExtractor(String databaseName, DatabaseHandler dbHandler, String expertCollectionId, String expertId) {
+    this.databaseName = databaseName;
 	this.dbHandler = dbHandler;
 	this.expertId = expertId;
 	this.expertCollectionId = expertCollectionId;
@@ -36,8 +40,11 @@ public class TagExtractor {
 
     public String getTags() {
 
-	String experts = this.dbHandler.getExperts(this.expertCollectionId);
+	String experts = this.dbHandler.getExperts( databaseName, Long.parseLong(this.expertCollectionId) );
 	ArrayList<String> labels = getRelatedPosts(experts);
+	if(labels == null) return ExceptionMessages.DATAFORMAT_NOT_VALID;
+	if(labels.equals("")) return ERSMessage.EXPORTID_NOT_FOUND;
+
 	ArrayList<String> reqTags = new ArrayList<String>();
 
 	try {
@@ -45,7 +52,7 @@ public class TagExtractor {
 	    if (labels != null && labels.size() > 0) {
 		for (String label : labels) {
 		    if (label != null) {
-			String tags = this.dbHandler.getSemanticTags(label);
+			String tags = this.dbHandler.getSemanticTags(databaseName, label);
 			// System.out.println("TAGS::  " + tags);
 			// Count the tag frequency in all the posts.
 			if (tags != null && tags.length() > 0) {
@@ -86,18 +93,23 @@ public class TagExtractor {
     }
 
     private ArrayList<String> getRelatedPosts(String experts) {
-	String relatedPosts = null;
-	JsonParser jparser = new JsonParser();
-	JsonArray jarr = (JsonArray) jparser.parse(experts);
-	for (int i = 0; i < jarr.size(); i++) {
-	    JsonObject jobj = jarr.get(i).getAsJsonObject();
-	    if (jobj.get("userId").getAsString().equals(expertId)) {
-		relatedPosts = jobj.get("relatedPosts").getAsString();
-	    }
-	}
-
-	relatedPosts = relatedPosts.substring(1, relatedPosts.length() - 1);
-	return new ArrayList<String>(Arrays.asList(relatedPosts.split(",")));
+		String relatedPosts = "";
+		JsonParser jparser = new JsonParser();
+		try{
+			JsonArray jarr = (JsonArray) jparser.parse(experts);
+			for (int i = 0; i < jarr.size(); i++) {
+			    JsonObject jobj = jarr.get(i).getAsJsonObject();
+			    if (jobj.get("userId").getAsString().equals(expertId)) {
+			    	relatedPosts = jobj.get("relatedPosts").getAsString();
+			    }
+			}
+		
+			relatedPosts = relatedPosts.substring(1, relatedPosts.length() - 1);
+		} catch(Exception e){
+			e.printStackTrace();
+			return null;
+		}
+		return new ArrayList<String>(Arrays.asList(relatedPosts.split(",")));
     }
 
 }

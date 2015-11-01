@@ -1,4 +1,4 @@
-<project name="LAS2peer-Template-Project" default="all" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name="Expert-Identification-Service" default="all" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
 
     <property file="etc/ant_configuration/user.properties"/>
 
@@ -66,46 +66,6 @@
     </target>
 
   <target name="get_ers_deps" unless="skip.download">
-        <echo message="installing jung..."/>
-        <get src="http://repo1.maven.org/maven2/net/sf/jung/jung-algorithms/2.0.1/jung-algorithms-2.0.1.jar" dest="${basedir}/lib"/>
-        <get src="http://repo1.maven.org/maven2/net/sf/jung/jung-api/2.0.1/jung-api-2.0.1.jar" dest="${basedir}/lib"/>
-        <get src="http://repo1.maven.org/maven2/net/sf/jung/jung-graph-impl/2.0.1/jung-graph-impl-2.0.1.jar" dest="${basedir}/lib"/>
-        <get src="http://repo1.maven.org/maven2/net/sf/jung/jung-io/2.0.1/jung-io-2.0.1.jar" dest="${basedir}/lib"/>
-
-        <echo message="installing jsoup..."/>
-        <get src="http://repo1.maven.org/maven2/org/jsoup/jsoup/1.8.2/jsoup-1.8.2.jar" dest="${basedir}/lib"/>
-
-        <echo message="installing guava..."/>
-        <get src="http://repo1.maven.org/maven2/com/google/guava/guava/18.0/guava-18.0.jar" dest="${basedir}/lib"/>
-
-        <echo message="installing Gson..."/>
-        <get src="http://repo1.maven.org/maven2/com/google/code/gson/gson/2.3.1/gson-2.3.1.jar" dest="${basedir}/lib"/>
-
-        <echo message="installing Gephi ..."/>
-        <get src="http://nexus.gephi.org/nexus/content/repositories/releases/org/gephi/gephi-toolkit/0.8.2/gephi-toolkit-0.8.2-all.jar" dest="${basedir}/lib"/>
-        <get src="http://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.3.2/httpcore-4.3.2.jar" dest="${basedir}/lib"/>
-
-        <echo message="installing Http componenets..."/>
-        <get src="http://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.3.5/httpclient-4.3.5.jar" dest="${basedir}/lib"/>
-
-        <echo message="installing generic collections..."/>
-        <get src="http://repo1.maven.org/maven2/net/sourceforge/collections/collections-generic/4.01/collections-generic-4.01.jar" dest="${basedir}/lib"/>
-
-        <echo message="installing ORMLite..."/>
-        <get src="http://central.maven.org/maven2/com/j256/ormlite/ormlite-core/4.48/ormlite-core-4.48.jar" dest="${basedir}/lib" usetimestamp="true" skipexisting="true"/>
-        <get src="http://central.maven.org/maven2/com/j256/ormlite/ormlite-jdbc/4.48/ormlite-jdbc-4.48.jar" dest="${basedir}/lib" usetimestamp="true" skipexisting="true"/>
-
-        <echo message="installing Lucene core..."/>
-        <get src="http://central.maven.org/maven2/org/apache/lucene/lucene-core/5.0.0/lucene-core-5.0.0.jar" dest="${basedir}/lib" usetimestamp="true" skipexisting="true"/>
-        <get src="http://central.maven.org/maven2/org/apache/lucene/lucene-analyzers-common/5.0.0/lucene-analyzers-common-5.0.0.jar" dest="${basedir}/lib" usetimestamp="true" skipexisting="true"/>
-        <get src="http://central.maven.org/maven2/org/apache/lucene/lucene-queries/5.0.0/lucene-queries-5.0.0.jar" dest="${basedir}/lib" usetimestamp="true" skipexisting="true"/>
-        <get src="http://central.maven.org/maven2/org/apache/lucene/lucene-queryparser/5.0.0/lucene-queryparser-5.0.0.jar" dest="${basedir}/lib" usetimestamp="true" skipexisting="true"/>
-
-        <get src="http://repo1.maven.org/maven2/org/apache/commons/commons-math3/3.4.1/commons-math3-3.4.1.jar" dest="${basedir}/lib" usetimestamp="true" skipexisting="true"/>
-
-        <echo message="installing jCSV ..."/>
-        <get src="http://repo1.maven.org/maven2/com/googlecode/jcsv/jcsv/1.4.0/jcsv-1.4.0.jar" dest="${basedir}/lib" usetimestamp="true" skipexisting="true"/>
-
     </target>
 
     <!-- Get Dependencies from our Maven Repository via Ivy -->
@@ -230,7 +190,8 @@
 
     <target name="junit_tests" depends="init_junit, compile_all">
         <junit fork="yes" haltonerror="yes" haltonfailure="yes" printsummary="yes">
-            <classpath>
+
+        	<classpath>
                 <pathelement path="${tmp.classes}" />
                 <pathelement path="${tmp.junit}" />
                 <pathelement path="${lib.junit}" />

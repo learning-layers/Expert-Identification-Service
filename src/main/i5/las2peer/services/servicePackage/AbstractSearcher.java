@@ -81,7 +81,7 @@ public abstract class AbstractSearcher {
 	connect();
 	analyseQuery();
 	searchIndex();
-	createGraph();
+	createGraph(databaseName);
     }
 
     /**
@@ -97,13 +97,13 @@ public abstract class AbstractSearcher {
 	    // Throw custom exception.
 	}
 
-	dbHandler = new DatabaseHandler(databaseName, "root", "");
+	dbHandler = new DatabaseHandler();
 
 	connectionSource = dbHandler.getConnectionSource();
 
 	Application.algoName = requestParameters.algorithmName;
 	// Application.intraWeight = intraWeight;
-	dbHandler.truncateEvaluationTable();
+	dbHandler.truncateEvaluationTable(databaseName);
     }
 
     /**
@@ -127,9 +127,9 @@ public abstract class AbstractSearcher {
 	    e.printStackTrace();
 	}
 
-	queryId = qAnalyzer.getId(connectionSource);
+	queryId = qAnalyzer.getId(databaseName, connectionSource);
 	try {
-	    usermap = UserMapSingleton.getInstance().getUserMap(connectionSource);
+	    usermap = UserMapSingleton.getInstance().getUserMap(databaseName, connectionSource);
 	} catch (SQLException e1) {
 	    e1.printStackTrace();
 	}
@@ -165,7 +165,7 @@ public abstract class AbstractSearcher {
      * @throws ERSException
      *             An exception is thrown if generation of graph fails.
      */
-    public void createGraph() throws ERSException {
+    public void createGraph(String databaseName) throws ERSException {
 
 	try {
 	    // System.out.println("Performing search...");
@@ -175,7 +175,7 @@ public abstract class AbstractSearcher {
 
 	    graphWriter = new GraphWriter(jcreator);
 	    graphWriter.saveToGraphMl("graph_jung.graphml");
-	    graphWriter.saveToDb(queryId, connectionSource);
+	    graphWriter.saveToDb(databaseName, queryId, connectionSource);
 
 	} catch (Exception e) {
 	    e.printStackTrace();
@@ -194,7 +194,7 @@ public abstract class AbstractSearcher {
      *            A json string consisting of expert details.
      */
     public void save(LinkedHashMap<String, Double> expert2score, String experts) {
-	expertsId = dbHandler.addExperts(queryId, experts);
+	expertsId = dbHandler.addExperts(databaseName, queryId, experts);
 
 	// If evaluation is requested.
 
@@ -204,7 +204,7 @@ public abstract class AbstractSearcher {
 	    // Compute Evaluation Measures.
 	    try {
 		eMeasure.computeAll();
-		eMeasure.save(queryId, connectionSource);
+		eMeasure.save(databaseName, queryId, connectionSource);
 		eMeasureId = eMeasure.getId();
 	    } catch (IOException e) {
 		e.printStackTrace();
@@ -245,7 +245,8 @@ public abstract class AbstractSearcher {
      * @return Returns the database name associated with a particular dataset.
      */
     private String getDatabaseName(String datasetId) {
-	DatabaseHandler handler = new DatabaseHandler("ersdb", "root", "");
+//	DatabaseHandler handler = new DatabaseHandler("ersdb", "root", "");//TODO
+	DatabaseHandler handler = new DatabaseHandler();
 	String databaseName = null;
 	try {
 	    Dao<DataInfoEntity, Long> DatasetInfoDao = DaoManager.createDao(handler.getConnectionSource(), DataInfoEntity.class);

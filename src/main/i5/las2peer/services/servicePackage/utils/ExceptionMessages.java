@@ -15,5 +15,7 @@ public class ExceptionMessages {
     public static final String CREATE_GRAPH_EXCEPTION = "Exception while creating graph";
     public static final String DATABASE_NOT_FOUND = "Database for the requested id is not found";
     
+    public static final String DATAFORMAT_NOT_VALID = "Data format is not valid.";
+
 }
 

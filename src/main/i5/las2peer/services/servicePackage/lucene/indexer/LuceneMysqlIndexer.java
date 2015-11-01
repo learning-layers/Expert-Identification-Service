@@ -3,6 +3,7 @@
  */
 package i5.las2peer.services.servicePackage.lucene.indexer;
 
+import i5.las2peer.services.servicePackage.database.DatabaseHandler;
 import i5.las2peer.services.servicePackage.database.entities.DataEntity;
 import i5.las2peer.services.servicePackage.database.entities.SemanticTagEntity;
 import i5.las2peer.services.servicePackage.textProcessor.StopWordRemover;
@@ -36,6 +37,7 @@ public class LuceneMysqlIndexer {
     private ConnectionSource connSrc;
     private IndexWriter indexWriter;
     private String indexDirectoryPath;
+    private String databaseName;
     private static String dataIndexBasePath = "luceneIndex/%s/data/";
     private static String semanticsIndexBasePath = "luceneIndex/%s/semantics/";
 
@@ -50,9 +52,10 @@ public class LuceneMysqlIndexer {
      * @throws IOException
      *             Exception is thrown if files cannot be created or opened.
      */
-    public LuceneMysqlIndexer(ConnectionSource connectionSrc, String indexDirectoryPath) throws IOException {
+    public LuceneMysqlIndexer(String databaseName, ConnectionSource connectionSrc, String indexDirectoryPath) throws IOException {
 	connSrc = connectionSrc;
 	this.indexDirectoryPath = indexDirectoryPath;
+	this.databaseName = databaseName;
     }
 
     /**
@@ -72,7 +75,8 @@ public class LuceneMysqlIndexer {
 
 	Document dataDoc;
 
-	Dao<DataEntity, Long> postsDao = DaoManager.createDao(connSrc, DataEntity.class);
+	DatabaseHandler dbHandler = new DatabaseHandler();
+	Dao<DataEntity, Long> postsDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, DataEntity.class, databaseName) );
 
 	List<DataEntity> data_entites = postsDao.queryForAll();
 	// Application.totalNoOfResources = data_entites.size();
@@ -139,17 +143,18 @@ public class LuceneMysqlIndexer {
 	    indexWriter.close();
 	}
 
-	updateSemanticsIndex();
+	updateSemanticsIndex(dbHandler);
 	System.out.println("Building index completed...");
 
     }
 
     /**
      * 
+     * @param dbHandler 
      * @throws IOException
      * @throws SQLException
      */
-    private void updateSemanticsIndex() throws IOException, SQLException {
+    private void updateSemanticsIndex(DatabaseHandler dbHandler) throws IOException, SQLException {
 
 	IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
 	Directory semanticsIndexDir = FSDirectory.open(new File(String.format(semanticsIndexBasePath, indexDirectoryPath)).toPath());
@@ -163,8 +168,8 @@ public class LuceneMysqlIndexer {
 
 	Document semanticDataDoc = new Document();
 
-	Dao<DataEntity, Long> postsDao = DaoManager.createDao(connSrc, DataEntity.class);
-	Dao<SemanticTagEntity, Long> semanticsDao = DaoManager.createDao(connSrc, SemanticTagEntity.class);
+	Dao<DataEntity, Long> postsDao = DaoManager.createDao(connSrc,dbHandler.getEntityConfigOfDataSet(connSrc, DataEntity.class, databaseName) );
+	Dao<SemanticTagEntity, Long> semanticsDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, SemanticTagEntity.class, databaseName) );
 
 	List<DataEntity> dataEntites = postsDao.queryForAll();
 

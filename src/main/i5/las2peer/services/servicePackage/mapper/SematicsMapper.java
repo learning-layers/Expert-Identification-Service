@@ -3,6 +3,7 @@
  */
 package i5.las2peer.services.servicePackage.mapper;
 
+import i5.las2peer.services.servicePackage.database.DatabaseHandler;
 import i5.las2peer.services.servicePackage.database.entities.SemanticTagEntity;
 import i5.las2peer.services.servicePackage.models.SemanticToken;
 import i5.las2peer.services.servicePackage.utils.Application;
@@ -56,7 +57,7 @@ public class SematicsMapper {
 	totalEntityFreq = new HashMap<String, Integer>();
     }
 
-    public void buildIndex(TopDocs docs, String queryString, String filepath) {
+    public void buildIndex(String databaseName, TopDocs docs, String queryString, String filepath) {
 	SemanticTagger tagger = new SemanticTagger(queryString);
 	mQueryEntities = tagger.getTokens();
 
@@ -65,7 +66,9 @@ public class SematicsMapper {
 		    filepath))
 		    .toPath())));
 
-	    Dao<SemanticTagEntity, Long> tagDao = DaoManager.createDao(mConnectionSource, SemanticTagEntity.class);
+		DatabaseHandler dbHandler = new DatabaseHandler();
+
+	    Dao<SemanticTagEntity, Long> tagDao = DaoManager.createDao(mConnectionSource, dbHandler.getEntityConfigOfDataSet(mConnectionSource, SemanticTagEntity.class, databaseName) );
 	    for (ScoreDoc scoreDoc : docs.scoreDocs) {
 
 		Document doc = dataSearcher.doc(scoreDoc.doc);

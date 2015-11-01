@@ -28,6 +28,9 @@ public final class ERSMessage {
     public static final String INDEX_FAILURE = "Indexing Failed.";
 
     public static final String EXPERTS_NOT_FOUND = "No experts found.";
+    public static final String EVALUATION_NOT_FOUND = "No evaluation found.";
+
+    public static final String EXPORTID_NOT_FOUND = "No entry found with given export id.";
 
 }
 

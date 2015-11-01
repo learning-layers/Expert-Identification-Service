@@ -3,6 +3,7 @@
  */
 package i5.las2peer.services.servicePackage.parsers.csvparser;
 
+import i5.las2peer.services.servicePackage.database.DatabaseHandler;
 import i5.las2peer.services.servicePackage.database.entities.EvaluationMetricsEntity;
 import i5.las2peer.services.servicePackage.database.entities.QueryEntity;
 import i5.las2peer.services.servicePackage.ocd.OCD;
@@ -34,15 +35,17 @@ public class EvaluationCSVWriter {
 
     }
 
-    public void extractResultsfromDb(ConnectionSource connSrc) {
+    public void extractResultsfromDb(String databaseName, ConnectionSource connSrc) {
 
 	evaluationResults = new ArrayList<EvaluationCSV>();
 	List<EvaluationMetricsEntity> entities = null;
 	try {
-	    Dao<EvaluationMetricsEntity, Long> EvaluationDao = DaoManager.createDao(connSrc, EvaluationMetricsEntity.class);
+		DatabaseHandler dbHandler = new DatabaseHandler();
+
+	    Dao<EvaluationMetricsEntity, Long> EvaluationDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, EvaluationMetricsEntity.class, databaseName) );
 	    entities = EvaluationDao.queryForAll();
 
-	    Dao<QueryEntity, Long> queryDao = DaoManager.createDao(connSrc, QueryEntity.class);
+	    Dao<QueryEntity, Long> queryDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, QueryEntity.class, databaseName) );
 
 	    for (EvaluationMetricsEntity entity : entities) {
 		String jevaluation = entity.getMetrics();

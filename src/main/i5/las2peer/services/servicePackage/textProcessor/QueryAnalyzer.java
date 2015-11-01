@@ -3,6 +3,7 @@
  */
 package i5.las2peer.services.servicePackage.textProcessor;
 
+import i5.las2peer.services.servicePackage.database.DatabaseHandler;
 import i5.las2peer.services.servicePackage.database.entities.QueryEntity;
 
 import java.sql.SQLException;
@@ -46,14 +47,17 @@ public class QueryAnalyzer {
 
     /**
      * 
+     * @param databaseName 
      * @param connSrc
      *            ConnectionSource to access the mysql database.
      * @return An id of the inserted row.
      */
-    public long getId(ConnectionSource connSrc) {
+    public long getId(String databaseName, ConnectionSource connSrc) {
 	// Save the text to the Db and generate an Id.
 	try {
-	    Dao<QueryEntity, Long> QueryDao = DaoManager.createDao(connSrc, QueryEntity.class);
+		DatabaseHandler dbHandler = new DatabaseHandler();
+
+	    Dao<QueryEntity, Long> QueryDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, QueryEntity.class, databaseName)  );
 	    queryEntity = new QueryEntity();
 	    queryEntity.setText(queryText);
 	    queryEntity.setDate(new Date());
