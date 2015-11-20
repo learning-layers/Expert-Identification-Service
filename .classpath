@@ -3,7 +3,6 @@
 	<classpathentry kind="src" path="src/main"/>
 	<classpathentry kind="src" path="src/test"/>
 	<classpathentry kind="lib" path="etc/ivy/ivy.jar"/>
-	<classpathentry kind="lib" path="service/i5.las2peer.services.servicePackage-0.1.jar"/>
 	<classpathentry kind="lib" path="lib/activation-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/asm-4.0.jar"/>
 	<classpathentry kind="lib" path="lib/asm-tree-4.0.jar"/>
@@ -36,9 +35,6 @@
 	<classpathentry kind="lib" path="lib/jung-io-2.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.11.jar"/>
 	<classpathentry kind="lib" path="lib/lang-tag-1.4.jar"/>
-	<classpathentry kind="lib" path="lib/las2peer-0.3-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="lib/las2peer-rest-mapper-0.3-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="lib/las2peer-web-connector-0.3-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-analyzers-common-5.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-core-5.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-queries-5.0.0.jar"/>
@@ -51,5 +47,13 @@
 	<classpathentry kind="lib" path="lib/ormlite-jdbc-4.48.jar"/>
 	<classpathentry kind="lib" path="lib/xpp3-1.1.4c.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/las2peer-0.5-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/las2peer-rest-mapper-0.5-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/las2peer-web-connector-0.5-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/swagger-annotations-1.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/swagger-core-1.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/swagger-jaxrs-1.5.4.jar"/>
+	<classpathentry kind="lib" path="lib/swagger-models-1.5.4.jar"/>
+
 	<classpathentry kind="output" path="tmp/classes"/>
 </classpath>

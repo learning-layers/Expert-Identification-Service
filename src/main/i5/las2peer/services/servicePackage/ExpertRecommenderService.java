@@ -4,20 +4,8 @@ import i5.las2peer.api.Service;
 import i5.las2peer.restMapper.HttpResponse;
 import i5.las2peer.restMapper.MediaType;
 import i5.las2peer.restMapper.RESTMapper;
-import i5.las2peer.restMapper.annotations.Consumes;
 import i5.las2peer.restMapper.annotations.ContentParam;
-import i5.las2peer.restMapper.annotations.GET;
-import i5.las2peer.restMapper.annotations.POST;
-import i5.las2peer.restMapper.annotations.Path;
-import i5.las2peer.restMapper.annotations.PathParam;
-import i5.las2peer.restMapper.annotations.Produces;
-import i5.las2peer.restMapper.annotations.QueryParam;
 import i5.las2peer.restMapper.annotations.Version;
-import i5.las2peer.restMapper.annotations.swagger.ApiInfo;
-import i5.las2peer.restMapper.annotations.swagger.ApiResponse;
-import i5.las2peer.restMapper.annotations.swagger.ApiResponses;
-import i5.las2peer.restMapper.annotations.swagger.ResourceListApi;
-import i5.las2peer.restMapper.annotations.swagger.Summary;
 import i5.las2peer.restMapper.tools.ValidationResult;
 import i5.las2peer.restMapper.tools.XMLCheck;
 import i5.las2peer.services.servicePackage.database.DatabaseHandler;
@@ -58,6 +46,14 @@ import i5.las2peer.services.servicePackage.utils.LocalFileManager;
 import i5.las2peer.services.servicePackage.utils.UserMapSingleton;
 import i5.las2peer.services.servicePackage.utils.semanticTagger.RelatedPostsExtractor;
 import i5.las2peer.services.servicePackage.utils.semanticTagger.TagExtractor;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Contact;
+import io.swagger.annotations.Info;
+import io.swagger.annotations.License;
+import io.swagger.annotations.SwaggerDefinition;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -65,6 +61,15 @@ import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -85,9 +90,27 @@ import com.j256.ormlite.table.TableUtils;
  * @author sathvik
  */
 
+
 @Path("ers")
-@Version("0.1")
-@ApiInfo(title = "Expert Recommender Service", description = "A RESTful expert recommender service", termsOfServiceUrl = "sample-tos.io", contact = "sathvik.parekodi@rwth-aachen.de", license = "Apache License 2", licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0")
+@Version("0.1") // this annotation is used by the XML mapper
+@Api
+@SwaggerDefinition(
+		info = @Info(
+				title = "Expert Recommender Service",
+				version = "0.1",
+				description = "A RESTful expert recommender service.",
+				termsOfService = "sample-tos.io",
+				contact = @Contact(
+						name = "Sathvik Parekodi",
+						url = "",
+						email = "sathvik.parekodi@rwth-aachen.de"
+				),
+				license = @License(
+						name = "Apache License 2",
+						url = "http://www.apache.org/licenses/LICENSE-2.0"
+				)
+		))
+
 public class ExpertRecommenderService extends Service {
 
     private Log log = LogFactory.getLog(ExpertRecommenderService.class);
@@ -107,11 +130,11 @@ public class ExpertRecommenderService extends Service {
      */
     @GET
     @Path("datasets")
-    @ResourceListApi(description = "Get all the available datasets on the server.")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-    @Summary("Returns the available datasets on the server.")
+	@ApiOperation(value = "Get all the available datasets on the server.",
+	notes = "Returns the available datasets on the server.")
     public HttpResponse getAvailableDatasets() {
 
 		DatabaseHandler handler = new DatabaseHandler();
@@ -150,8 +173,9 @@ public class ExpertRecommenderService extends Service {
     }
         
     @POST
-    @ResourceListApi(description = "Creates the main table if not exists already, then adds dataset to main table and creates all the required tables required for the dataset and recommendation service.")
     @Path("prepareDataset/{databaseName}")
+	@ApiOperation(value = "Creates the main table if not exists already, then adds dataset to main table and creates all the required tables required for the dataset and recommendation service.",
+	notes = "")
     public HttpResponse prepareDataset(@PathParam("databaseName") String databaseName, @ContentParam String displayName) {
 
 		if (databaseName == null || StringUtils.isAlphanumeric(databaseName) == false) {
@@ -252,10 +276,11 @@ public class ExpertRecommenderService extends Service {
      * @return A string representing if the update was success or failure.
      */
     @POST
-    @ResourceListApi(description = "Parse the data files and add it to database.")
     @Path("datasets/{datasetId}/parse")
+	@ApiOperation(value = "Parse the data files and add it to database.",
+	notes = "")
     public HttpResponse parse(@PathParam("datasetId") String id, @ContentParam String urlObject,
-	    @QueryParam(name = "format", defaultValue = "xml") String type) {
+    	@DefaultValue("xml") @QueryParam("format") String type) {
 
 		// log.info("URL::" + urlObject);
 		HttpResponse res = null;
@@ -351,11 +376,11 @@ public class ExpertRecommenderService extends Service {
      */
     @POST
     @Path("datasets/{datasetId}/indexer")
-    @ResourceListApi(description = "Index the data in the dataset.")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Indexing success") })
-    @Summary("Indexes the text stored in the database.")
+	@ApiOperation(value = "Index the data in the dataset.",
+	notes = "Indexes the text stored in the database.")
     public HttpResponse index(@PathParam("datasetId") String id) {
 
 		String databaseName = getDatabaseName(id);
@@ -386,11 +411,11 @@ public class ExpertRecommenderService extends Service {
      */
     @POST
     @Path("datasets/{datasetId}/semantics")
-    @ResourceListApi(description = "Adds semantics to the posts in the dataset.")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-    @Summary("Adds semantic tags to the text.")
+	@ApiOperation(value = "Adds semantics to the posts in the dataset.",
+	notes = "Adds semantic tags to the text.")
     public HttpResponse addSemantics(@PathParam(value = "datasetId") String datasetId) {
 
 		String dbName = getDatabaseName(datasetId);
@@ -427,15 +452,17 @@ public class ExpertRecommenderService extends Service {
      */
     @POST
     @Path("datasets/{datasetId}/algorithms/{algorithmName}")
-    @ResourceListApi(description = "Executes the requested algorithm on the dataset.")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-    @Summary("Returns the id of the expert collection, id of evaluation metrics and id of the visualization")
+	@ApiOperation(value = "Executes the requested algorithm on the dataset.",
+	notes = "Returns the id of the expert collection, id of evaluation metrics and id of the visualization.")
     public HttpResponse applyAlgorithm(@PathParam("datasetId") String datasetId, @PathParam("algorithmName") String algorithmName,
-	    @ContentParam String query, @QueryParam(name = "evaluation", defaultValue = "false") boolean isEvaluation,
-	    @QueryParam(name = "visualization", defaultValue = "true") boolean isVisualization,
-	    @QueryParam(name = "alpha", defaultValue = "0.15d") String alpha, @QueryParam(name = "intra", defaultValue = "0.6") String intraWeight) {
+	    @ContentParam String query, 
+	    @DefaultValue("false") @QueryParam("evaluation") boolean isEvaluation,
+	    @DefaultValue("true") @QueryParam("visualization") boolean isVisualization,
+	    @DefaultValue("0.15d") @QueryParam("alpha") String alpha, 
+	    @DefaultValue("0.6") @QueryParam("intra") String intraWeight) {
 
 	    ERSBundle properties = new ERSBundle.Builder(datasetId, query, algorithmName).alpha(alpha).intraWeight(intraWeight)
 			.isEvaluation(isEvaluation)
@@ -497,11 +524,11 @@ public class ExpertRecommenderService extends Service {
      */
     @GET
     @Path("datasets/{datasetId}/experts/{expertsId}")
-    @ResourceListApi(description = "Get the experts from the dataset with respect to an expert id.")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-    @Summary("Returns the collection of experts for the specific id. Id is retrieved after applying recommendetaion algorithm on the dataset")
+	@ApiOperation(value = "Get the experts from the dataset with respect to an expert id.",
+	notes = "Returns the collection of experts for the specific id. Id is retrieved after applying recommendetaion algorithm on the dataset")
     public HttpResponse getExperts(@PathParam("datasetId") String datasetId, @PathParam("expertsId") String expertsId) {
 		log.info("expertsId:: " + expertsId);
 		String databaseName = getDatabaseName(datasetId);
@@ -539,11 +566,11 @@ public class ExpertRecommenderService extends Service {
      */
     @GET
     @Path("datasets/{datasetId}/evaluations/{evaluationId}")
-    @ResourceListApi(description = "Get the evaluation results.")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-    @Summary("Returns the evaluation metrics computed if requested when applying algorithms. Evaluation Id is retrieved after applying algorithm on the dataset.")
+	@ApiOperation(value = "Get the evaluation results.",
+	notes = "Returns the evaluation metrics computed if requested when applying algorithms. Evaluation Id is retrieved after applying algorithm on the dataset.")
     public HttpResponse getEvaluationResults(@PathParam("datasetId") String datasetId, @PathParam("evaluationId") String evaluationId) {
 
 		String databaseName = getDatabaseName(datasetId);
@@ -574,11 +601,11 @@ public class ExpertRecommenderService extends Service {
      */
     @GET
     @Path("datasets/{datasetId}/visualizations/{visualizationId}")
-    @ResourceListApi(description = "Get the visualization graph")
     @Produces(MediaType.APPLICATION_XML)
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-    @Summary("Returns the visualization graph to be consumed by the client.")
+	@ApiOperation(value = "Get the visualization graph",
+	notes = "Returns the visualization graph to be consumed by the client.")
     public HttpResponse getVisulaizationData(@PathParam("datasetId") String datasetId, @PathParam("visualizationId") String visId) {
 		log.info("expertsId:: " + visId);
 	
@@ -607,13 +634,13 @@ public class ExpertRecommenderService extends Service {
      */
     @POST
     @Path("datasets/{datasetId}/algorithms/datamodeling")
-    @ResourceListApi(description = "Apply data modeling technique")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-    @Summary("Returns the id of the expert collection.")
+	@ApiOperation(value = "Apply data modeling technique",
+	notes = "Returns the id of the expert collection.")
     public HttpResponse modelExperts(@PathParam("datasetId") String datasetId, @ContentParam String query,
-	    @QueryParam(name = "alpha", defaultValue = "0.5") double alpha) {
+    	@DefaultValue("0.5") @QueryParam("alpha") double alpha) {
     
 		Application.algoName = "datamodeling";
 	
@@ -721,11 +748,11 @@ public class ExpertRecommenderService extends Service {
      */
     @GET
     @Path("datasets/{datasetId}/experts/{expertsCollectionId}/expert/{expertId}/tags")
-    @ResourceListApi(description = "Retrieves the related tags for the user")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 401, message = "Unauthorized") })
-    @Summary("Returns tags associated with experts for the specific post.")
+	@ApiOperation(value = "Retrieves the related tags for the user",
+	notes = "Returns tags associated with experts for the specific post.")
     public HttpResponse getTags(@PathParam("datasetId") String datasetId, @PathParam("expertsCollectionId") String expertCollectionId,
 	    @PathParam("expertId") String expertId) {
 
@@ -756,10 +783,9 @@ public class ExpertRecommenderService extends Service {
      */
     @GET
     @Path("datasets/{datasetId}/experts/{expertsCollectionId}/expert/{expertId}/posts")
-    @ResourceListApi(description = "Returns the related post of the expert.")
-
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-    @Summary("Returns the related posts of the expert user.")
+	@ApiOperation(value = "Returns the related post of the expert.",
+	notes = "Returns the related posts of the expert user.")
     public HttpResponse getPosts(@PathParam("datasetId") String datasetId, @PathParam("expertsCollectionId") String expertCollectionId,
 	    @PathParam("expertId") String expertId) {
 
@@ -944,7 +970,8 @@ public class ExpertRecommenderService extends Service {
     @POST
     @Path("datasets/{datasetId}/position")
     public void saveClickPositions(@PathParam(value = "datasetId") String datasetId,
-	    @QueryParam(name = "expertsId", defaultValue = "-1") String expertsId, @QueryParam(name = "position", defaultValue = "-1") int position) {
+    	@DefaultValue("-1") @QueryParam("expertsId") String expertsId, 
+    	@DefaultValue("-1") @QueryParam("position") int position) {
 
 		String databaseName = getDatabaseName(datasetId);
 		if (databaseName == null) {
@@ -965,7 +992,8 @@ public class ExpertRecommenderService extends Service {
 
     @POST
     @Path("datasets/{datasetId}/skillDistribution")
-    @ResourceListApi(description = "Extracts the most popular skill tags from the dataset.")
+	@ApiOperation(value = "Extracts the most popular skill tags from the dataset.",
+	notes = "")
     public HttpResponse createSkillDistribution(@PathParam(value = "datasetId") String datasetId) {
 
 		String dbName = getDatabaseName(datasetId);
@@ -1033,24 +1061,20 @@ public class ExpertRecommenderService extends Service {
     // /////// SWAGGER
     // ////////////////////////////////////////////////////////////////
 
-    @GET
-    @Path("api-docs")
-    @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse getSwaggerResourceListing() {
-	return RESTMapper.getSwaggerResourceListing(this.getClass());
-    }
+//    @GET
+//    @Path("api-docs")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public HttpResponse getSwaggerResourceListing() {
+//	return RESTMapper.getSwaggerResourceListing(this.getClass());
+//    }
+//
+//    @GET
+//    @Path("api-docs/{tlr}")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public HttpResponse getSwaggerApiDeclaration(@PathParam("tlr") String tlr) {
+//	// return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr,
+//	// "http://127.0.0.1:8080/ocd/");
+//	return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr, "https://api.learning-layers.eu/ers/");
+//    }
 
-    @GET
-    @Path("api-docs/{tlr}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public HttpResponse getSwaggerApiDeclaration(@PathParam("tlr") String tlr) {
-	// return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr,
-	// "http://127.0.0.1:8080/ocd/");
-	return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr, "https://api.learning-layers.eu/ers/");
-    }
-
-    public static void main(String[] args){
-    	ExpertRecommenderService ers = new ExpertRecommenderService();
-    	ers.applyAlgorithm("2", "hits", "kindle", false, true, "0.15d", "0.6");
-    }
 }
