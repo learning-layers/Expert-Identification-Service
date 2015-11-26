@@ -1,55 +1,86 @@
       var erControllers = angular.module('erControllers', []);
+      var hash = location.hash;
 
       erControllers.controller('LoginCtrl', ['$scope', '$http', '$rootScope', '$location',
         function ($scope, $http, $rootScope, $location) {
           $scope.username = "anon";
           $rootScope.baseUrl = "http://localhost:8080/";
-           $scope.handleLogin = function($event,username) {
-              //Check for validity and store the value is the useragent.
-              var basicAuthEncodedString = window.btoa("anonymous:anonymous");
+          
+	      (function() {
+			  var po = document.createElement('script'); 
+			  po.type = 'text/javascript'; 
+			  po.async = true;
+			  po.src = 'app/scripts/oidc-button.js';
+			  var s = document.getElementsByTagName('script')[0]; 
+			  s.parentNode.insertBefore(po, s);
+			})();
+	      
+          $scope.handleLogin = function signinCallback(result) {
+        	    if(result === "success"){
+        	    	$location.hash("");
+        	    	$location.path("/search");
+        	    	$scope.$apply();
+        	    } else {
+        	        // if sign in was not successful, log the cause of the error on the console
+        	        console.log(result);
+        	    }
+        	  }
+            window.handleLogin = $scope.handleLogin;
 
-             // $http.defaults.headers.post.Authorization = "Basic "+ basicAuthEncodedString;
 
-              $http.post($rootScope.baseUrl+'ers/validate?username='+$scope.username).
-                    success(function(data, status, headers, config) {
-                    //$scope.expert = data;
-                      console.log(data);
-                      $scope.item=data;
-                  }).
-                  error(function(data, status, headers, config) {
-                    $scope.$emit('showUnavailableText', true);
-                    console.log(data);
-                    // called asynchronously if an error occurs
-                    // or server returns response with an error status.
-                  });
-
-              $location.path("/search");
-           };
+//          $scope.handleLogin = function($event,username) {
+//              //Check for validity and store the value is the useragent.
+//              var basicAuthEncodedString = window.btoa("anonymous:anonymous");
+//
+//             // $http.defaults.headers.post.Authorization = "Basic "+ basicAuthEncodedString;
+//
+//              $http.post($rootScope.baseUrl+'ers/validate?username='+$scope.username).
+//                    success(function(data, status, headers, config) {
+//                    //$scope.expert = data;
+//                      console.log(data);
+//                      $scope.item=data;
+//                  }).
+//                  error(function(data, status, headers, config) {
+//                    $scope.$emit('showUnavailableText', true);
+//                    console.log(data);
+//                    // called asynchronously if an error occurs
+//                    // or server returns response with an error status.
+//                  });
+//
+//              $location.path("/search");
+//           };
       }]);
 
       erControllers.controller('MainCtrl', ['$scope', '$http', '$rootScope', '$location',
         function ($scope, $http, $rootScope, $location) {
-
-          sigma.classes.graph.addMethod('neighbors', function(nodeId) {
-              var k,
-              neighbors = {},
-              index = this.allNeighborsIndex[nodeId] || {};
-
-              for (k in index)
-                neighbors[k] = this.nodesIndex[k];
-
-              return neighbors;
-            });
-
-
-          //Choose dataset controller.
-          console.log("Main Controller...");
-          if($rootScope.dataset == undefined) {
-            $location.path("/");
+    	  
+          if(window.localStorage["access_token"] == undefined) {
+        	  $location.hash(hash.substring(1));
+              $location.path("/login");
           } else {
-            console.log($rootScope.dataset);
-            $location.path("/search");
+
+	          sigma.classes.graph.addMethod('neighbors', function(nodeId) {
+	              var k,
+	              neighbors = {},
+	              index = this.allNeighborsIndex[nodeId] || {};
+	
+	              for (k in index)
+	                neighbors[k] = this.nodesIndex[k];
+	
+	              return neighbors;
+	            });
+	
+	
+	          //Choose dataset controller.
+	          console.log("Main Controller...");
+	          if($rootScope.dataset == undefined) {
+	            $location.path("/");
+	          } else {
+	            console.log($rootScope.dataset);
+	            $location.path("/search");
+	          }
           }
+          
         }]);
 
       erControllers.controller('ChooseDatasetCtrl', ['$scope', '$http',
@@ -174,6 +205,10 @@
 
         };
 
+        $scope.handleLogOut = function($event) {
+      	  localStorage.clear();
+    	  $location.path("/login");
+        }
         $scope.handleEvaluationTab = function($event) {
           console.log("Handle Evaluation tab...");
           $http.get($rootScope.baseUrl+'ers/datasets/'+$rootScope.dataset.id+'/evaluations/'+$rootScope.ersIds.evaluationId).

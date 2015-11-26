@@ -16,7 +16,7 @@ erApp.config(['$routeProvider', '$locationProvider',
         templateUrl: 'app/views/datasets.html',
         controller: 'ChooseDatasetCtrl'
       }).
-      when('/', {
+      when('/login', {
         templateUrl: 'app/views/login.html',
         controller: 'LoginCtrl'
       }).
