@@ -3,9 +3,8 @@
 
       erControllers.controller('LoginCtrl', ['$scope', '$http', '$rootScope', '$location',
         function ($scope, $http, $rootScope, $location) {
-          $scope.username = "anon";
-          $rootScope.baseUrl = "http://localhost:8080/";
-          
+          $rootScope.baseUrl = "http://137.226.232.16:8080/";
+
 	      (function() {
 			  var po = document.createElement('script'); 
 			  po.type = 'text/javascript'; 
@@ -17,6 +16,21 @@
 	      
           $scope.handleLogin = function signinCallback(result) {
         	    if(result === "success"){
+                    $http.defaults.headers.common.access_token = window.localStorage["access_token"];
+
+        	    	$http.get($rootScope.baseUrl+'ers/validation').
+	                    success(function(data, status, headers, config) {
+		                    //$scope.expert = data;
+		                      console.log(data);
+		                      $scope.item=data;
+	                    }).
+	                    error(function(data, status, headers, config) {
+		                    $scope.$emit('showUnavailableText', true);
+		                    console.log(data);
+		                    // called asynchronously if an error occurs
+		                    // or server returns response with an error status.
+		                  });
+
         	    	$location.hash("");
         	    	$location.path("/search");
         	    	$scope.$apply();
@@ -27,28 +41,6 @@
         	  }
             window.handleLogin = $scope.handleLogin;
 
-
-//          $scope.handleLogin = function($event,username) {
-//              //Check for validity and store the value is the useragent.
-//              var basicAuthEncodedString = window.btoa("anonymous:anonymous");
-//
-//             // $http.defaults.headers.post.Authorization = "Basic "+ basicAuthEncodedString;
-//
-//              $http.post($rootScope.baseUrl+'ers/validate?username='+$scope.username).
-//                    success(function(data, status, headers, config) {
-//                    //$scope.expert = data;
-//                      console.log(data);
-//                      $scope.item=data;
-//                  }).
-//                  error(function(data, status, headers, config) {
-//                    $scope.$emit('showUnavailableText', true);
-//                    console.log(data);
-//                    // called asynchronously if an error occurs
-//                    // or server returns response with an error status.
-//                  });
-//
-//              $location.path("/search");
-//           };
       }]);
 
       erControllers.controller('MainCtrl', ['$scope', '$http', '$rootScope', '$location',

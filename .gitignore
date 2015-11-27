@@ -1,0 +1,9 @@
+
+/bin/
+/export
+/lib
+/log
+/luceneIndex
+/node-storage
+/service
+/tmp

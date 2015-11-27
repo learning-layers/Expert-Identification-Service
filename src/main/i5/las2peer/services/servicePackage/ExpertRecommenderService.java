@@ -8,6 +8,7 @@ import i5.las2peer.restMapper.annotations.ContentParam;
 import i5.las2peer.restMapper.annotations.Version;
 import i5.las2peer.restMapper.tools.ValidationResult;
 import i5.las2peer.restMapper.tools.XMLCheck;
+import i5.las2peer.security.UserAgent;
 import i5.las2peer.services.servicePackage.database.DatabaseHandler;
 import i5.las2peer.services.servicePackage.database.entities.DataEntity;
 import i5.las2peer.services.servicePackage.database.entities.DataInfoEntity;
@@ -123,6 +124,19 @@ public class ExpertRecommenderService extends Service {
 
     }
 
+    
+    @GET
+	@Path("/validation")
+	@Produces(MediaType.TEXT_PLAIN)
+	@ApiOperation(value = "User Validation",
+			notes = "Simple function to validate a user login.")
+	@ApiResponses(value = {	@ApiResponse(code = 200, message = "Validation Confirmation")})
+	public HttpResponse validateLogin() {
+		String returnString = "";
+		returnString += "You are " + ((UserAgent) getActiveAgent()).getLoginName() + " and your login is valid!";
+
+		return new HttpResponse(returnString, 200);
+	}
     
     /**
      * 
