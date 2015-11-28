@@ -3,6 +3,7 @@
 
       erControllers.controller('LoginCtrl', ['$scope', '$http', '$rootScope', '$location',
         function ($scope, $http, $rootScope, $location) {
+//    	  $rootScope.baseUrl = "http://localhost:8080/";
           $rootScope.baseUrl = "http://137.226.232.16:8080/";
 
 	      (function() {
