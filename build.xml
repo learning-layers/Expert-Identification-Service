@@ -41,7 +41,7 @@
         </fileset>
     </path>
 
-    <property name="lib.junit" location="${lib}/junit-4.11.jar" />
+    <property name="lib.junit" location="${lib}/junit-4.12.jar" />
 
 
     <!-- Ivy Installation (Tool to fetch Libraries) -->
@@ -65,12 +65,13 @@
         <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
     </target>
 
-  <target name="get_ers_deps" unless="skip.download">
+    <target name="get_ers_deps" unless="skip.download">
     </target>
 
     <!-- Get Dependencies from our Maven Repository via Ivy -->
     <target name="get_deps" depends="install-ivy" description="--> resolve dependencies">
-        <ivy:settings>
+    	<get src="http://nexus.gephi.org/nexus/content/repositories/releases/org/gephi/gephi-toolkit/0.8.2/gephi-toolkit-0.8.2-all.jar" dest="${basedir}/lib"/>
+    	<ivy:settings>
             <credentials host="role.dbis.rwth-aachen.de:9911/archiva"  realm="Repository internal"/>
         </ivy:settings>
         <ivy:retrieve type="jar, bundle" />
