@@ -65,9 +65,6 @@
         <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
     </target>
 
-    <target name="get_ers_deps" unless="skip.download">
-    </target>
-
     <!-- Get Dependencies from our Maven Repository via Ivy -->
     <target name="get_deps" depends="install-ivy" description="--> resolve dependencies">
     	<get src="http://nexus.gephi.org/nexus/content/repositories/releases/org/gephi/gephi-toolkit/0.8.2/gephi-toolkit-0.8.2-all.jar" dest="${basedir}/lib"/>
@@ -87,7 +84,7 @@
         <mkdir dir="${log}" />
     </target>
 
-    <target name="init_compile" depends="init_general, get_deps, get_ers_deps">
+    <target name="init_compile" depends="init_general, get_deps">
         <mkdir dir="${tmp.classes}" />
         <mkdir dir="${tmp.junit}" />
     </target>
