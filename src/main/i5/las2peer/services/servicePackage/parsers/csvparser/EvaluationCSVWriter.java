@@ -35,17 +35,17 @@ public class EvaluationCSVWriter {
 
     }
 
-    public void extractResultsfromDb(String databaseName, ConnectionSource connSrc) {
+    public void extractResultsfromDb(String datasetName, ConnectionSource connSrc) {
 
 	evaluationResults = new ArrayList<EvaluationCSV>();
 	List<EvaluationMetricsEntity> entities = null;
 	try {
 		DatabaseHandler dbHandler = new DatabaseHandler();
 
-	    Dao<EvaluationMetricsEntity, Long> EvaluationDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, EvaluationMetricsEntity.class, databaseName) );
+	    Dao<EvaluationMetricsEntity, Long> EvaluationDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, EvaluationMetricsEntity.class, datasetName) );
 	    entities = EvaluationDao.queryForAll();
 
-	    Dao<QueryEntity, Long> queryDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, QueryEntity.class, databaseName) );
+	    Dao<QueryEntity, Long> queryDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, QueryEntity.class, datasetName) );
 
 	    for (EvaluationMetricsEntity entity : entities) {
 		String jevaluation = entity.getMetrics();

@@ -37,10 +37,10 @@ public class UserMapSingleton {
 	return instance;
     }
 
-    public Map<Long, UserEntity> getUserMap(String databaseName, ConnectionSource connectionSource) throws SQLException {
+    public Map<Long, UserEntity> getUserMap(String datasetName, ConnectionSource connectionSource) throws SQLException {
 	DatabaseHandler dbHandler = new DatabaseHandler();
 
-    Dao<UserEntity, Long> userDao = DaoManager.createDao(connectionSource, dbHandler.getEntityConfigOfDataSet(connectionSource, UserEntity.class, databaseName) );
+    Dao<UserEntity, Long> userDao = DaoManager.createDao(connectionSource, dbHandler.getEntityConfigOfDataSet(connectionSource, UserEntity.class, datasetName) );
 	List<UserEntity> user_entites = userDao.queryForAll();
 	for (UserEntity entity : user_entites) {
 	    userId2userObj.put(entity.getUserId(), entity);

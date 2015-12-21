@@ -55,9 +55,13 @@ import io.swagger.annotations.Contact;
 import io.swagger.annotations.Info;
 import io.swagger.annotations.License;
 import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.jaxrs.Reader;
+import io.swagger.models.Swagger;
+import io.swagger.util.Json;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.List;
@@ -73,13 +77,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.util.TextUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.TopDocs;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.j256.ormlite.dao.Dao;
@@ -99,8 +103,8 @@ import com.j256.ormlite.table.TableUtils;
 		info = @Info(
 				title = "Expert Recommender Service",
 				version = "0.1",
-				description = "A RESTful expert recommender service.",
-				termsOfService = "sample-tos.io",
+				description = "An open source expert recommender system to recommend experts from the given data.",
+				termsOfService = "",
 				contact = @Contact(
 						name = "Sathvik Parekodi",
 						url = "",
@@ -111,7 +115,6 @@ import com.j256.ormlite.table.TableUtils;
 						url = "http://www.apache.org/licenses/LICENSE-2.0"
 				)
 		))
-
 public class ExpertRecommenderService extends Service {
 
     private Log log = LogFactory.getLog(ExpertRecommenderService.class);
@@ -121,17 +124,16 @@ public class ExpertRecommenderService extends Service {
 		// IF THE SERVICE CLASS NAME IS CHANGED, THE PROPERTIES FILE NAME NEED
 		// TO BE CHANGED TOO!
 		setFieldValues();
-
     }
 
     
     @GET
 	@Path("/validation")
 	@Produces(MediaType.TEXT_PLAIN)
-	@ApiOperation(value = "User Validation",
-			notes = "Simple function to validate a user login.")
 	@ApiResponses(value = {	@ApiResponse(code = 200, message = "Validation Confirmation")})
-	public HttpResponse validateLogin() {
+	@ApiOperation(value = "User Validation",
+		notes = "Simple function to validate a user login.")
+    public HttpResponse validateLogin() {
 		String returnString = "";
 		returnString += "You are " + ((UserAgent) getActiveAgent()).getLoginName() + " and your login is valid!";
 
@@ -146,9 +148,9 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-	@ApiOperation(value = "Get all the available datasets on the server.",
-	notes = "Returns the available datasets on the server.")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 500, message = "Connection or Query Failure") })
+	@ApiOperation(value = "Get Datasets on Server.",
+		notes = "Returns the available datasets on the server.")
     public HttpResponse getAvailableDatasets() {
 
 		DatabaseHandler handler = new DatabaseHandler();
@@ -160,7 +162,7 @@ public class ExpertRecommenderService extends Service {
 	
 		    datasetsObj = new JsonArray();
 		    for (DataInfoEntity entity : datasets) {
-				String name = entity.getDatasetName();
+				String name = entity.getDisplayName();
 				long id = entity.getId();
 				String description = "NA";
 		
@@ -170,35 +172,35 @@ public class ExpertRecommenderService extends Service {
 				jObj.addProperty(ERSMessage.DESCRIPTION, description);
 		
 				datasetsObj.add(jObj);
-	
 		    }
 	
 		} catch (SQLException e) {
 		    e.printStackTrace();
 		    HttpResponse res = new HttpResponse(ERSMessage.DATABASE_CONNECT_FAILURE);
-		    res.setStatus(200);
+		    res.setStatus(500);
 		    return res;
 		}
 	
 		HttpResponse res = new HttpResponse(datasetsObj.toString());
 		res.setStatus(200);
 		return res;
-		
     }
         
     @POST
-    @Path("prepareDataset/{databaseName}")
-	@ApiOperation(value = "Creates the main table if not exists already, then adds dataset to main table and creates all the required tables required for the dataset and recommendation service.",
-	notes = "")
-    public HttpResponse prepareDataset(@PathParam("databaseName") String databaseName, @ContentParam String displayName) {
+    @Path("prepareDataset/{datasetName}")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 400, message = "Invalid Input"), @ApiResponse(code = 500, message = "Connection or Query Failure") })
+	@ApiOperation(value = "Prepare Database for Uploading Data from Dataset.",
+		notes = "Creates the main table if not exists already, then adds dataset info to main table and creates all the required tables required for the dataset and recommendation service.")
+    public HttpResponse prepareDataset(@PathParam("datasetName") String datasetName, @ContentParam String displayName) {
 
-		if (databaseName == null || StringUtils.isAlphanumeric(databaseName) == false) {
+		if (datasetName == null || datasetName.length() > 64) {
 		    try {
 		    	throw new ERSException(ERSMessage.DATASET_NAME_INVALID);
 		    } catch (ERSException e) {
 				e.printStackTrace();
 				HttpResponse res = new HttpResponse(e.getMessage());
 				res.setStatus(400);
+				return res;
 		    }
 		}
 	
@@ -221,7 +223,7 @@ public class ExpertRecommenderService extends Service {
 		    Dao<DataInfoEntity, Long> DatasetInfoDao = DaoManager.createDao(handler.getConnectionSource(), DataInfoEntity.class);
 	
 		    QueryBuilder<DataInfoEntity, Long> qb = DatasetInfoDao.queryBuilder();
-		    qb.where().eq("database_name", databaseName);
+		    qb.where().eq("dataset_name", datasetName);
 		    List<DataInfoEntity> entities = qb.query();
 	
 		    // If entry is present, return the id. Else create and insert the
@@ -229,17 +231,17 @@ public class ExpertRecommenderService extends Service {
 		    if (entities != null && entities.size() > 0) {
 		    	entity = entities.get(0);
 		    } else {
-				entity.setDatabase(databaseName);
+				entity.setDatasetName(datasetName);
 				if (displayName == null)
-				    displayName = databaseName;
+				    displayName = datasetName;
 		
-				entity.setDataset(displayName);
+				entity.setDisplayName(displayName);
 		
 				Calendar cal = Calendar.getInstance();
 				entity.setDate(cal.getTime());
 		
-				entity.setFilepath(databaseName);
-				entity.setIndexFilepath(databaseName + "_index");
+				entity.setFilepath(datasetName);
+				entity.setIndexFilepath(datasetName + "_index");
 				DatasetInfoDao.create(entity);
 		    }
 		} catch (SQLException e) {
@@ -254,13 +256,13 @@ public class ExpertRecommenderService extends Service {
 		    connectionSrc = handler.getConnectionSource();
 		    
 		    // Create necessary tables
-		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc, DataEntity.class, databaseName));
-		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , UserEntity.class, databaseName));
-		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , SemanticTagEntity.class, databaseName));
-		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , QueryEntity.class, databaseName));
-		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , EvaluationMetricsEntity.class, databaseName));
-		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , GraphEntity.class, databaseName));
-		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , ExpertEntity.class, databaseName));
+		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc, DataEntity.class, datasetName));
+		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , UserEntity.class, datasetName));
+		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , SemanticTagEntity.class, datasetName));
+		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , QueryEntity.class, datasetName));
+		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , EvaluationMetricsEntity.class, datasetName));
+		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , GraphEntity.class, datasetName));
+		    TableUtils.createTableIfNotExists(connectionSrc, handler.getEntityConfigOfDataSet(connectionSrc , ExpertEntity.class, datasetName));
 
 		} catch (SQLException e) {
 		    e.printStackTrace();
@@ -272,7 +274,6 @@ public class ExpertRecommenderService extends Service {
 		HttpResponse res = new HttpResponse(String.valueOf(entity.getId()));
 		res.setStatus(200);
 		return res;
-		
     }
 
     /**
@@ -291,20 +292,24 @@ public class ExpertRecommenderService extends Service {
      */
     @POST
     @Path("datasets/{datasetId}/parse")
-	@ApiOperation(value = "Parse the data files and add it to database.",
-	notes = "")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 400, message = "Invalid Input"), @ApiResponse(code = 500, message = "Connection or Query Failure") })
+	@ApiOperation(value = "Parse the Data.",
+		notes = "Parses the data files and add it to database.")
     public HttpResponse parse(@PathParam("datasetId") String id, @ContentParam String urlObject,
     	@DefaultValue("xml") @QueryParam("format") String type) {
 
 		// log.info("URL::" + urlObject);
 		HttpResponse res = null;
 	
-		String databaseName = getDatabaseName(id);
-		if (databaseName == null) {
+		String datasetName = getDatasetName(id);
+		if (datasetName == null) {
 		    try {
 		    	throw new ERSException(ERSMessage.DATASET_NOT_CONFIGURED);
 		    } catch (ERSException e) {
-		    	e.printStackTrace();
+			    e.printStackTrace();
+			    res = new HttpResponse(e.getMessage());
+			    res.setStatus(400);
+			    return res;
 		    }
 		}
 	
@@ -320,8 +325,8 @@ public class ExpertRecommenderService extends Service {
 		    }
 		} else {
 		    isLocal = true;
-		    postsPath = "datasets/" + databaseName + "/posts.xml";
-		    usersPath = "datasets/" + databaseName + "/users.xml";
+		    postsPath = "datasets/" + datasetName + "/posts.xml";
+		    usersPath = "datasets/" + datasetName + "/users.xml";
 		}
 	
 		log.info(postsPath);
@@ -334,32 +339,32 @@ public class ExpertRecommenderService extends Service {
 				log.info("Executing XML Parser...");
 				XMLParser xmlparser = new XMLParser();
 				xmlparser.parseData(postsPath, isLocal);
-				dbHandler.addPosts(databaseName, xmlparser.getPosts());
+				dbHandler.addPosts(datasetName, xmlparser.getPosts());
 		
 				xmlparser.parseUserData(usersPath, isLocal);
-				dbHandler.addUsers(databaseName, xmlparser.getUsers());
+				dbHandler.addUsers(datasetName, xmlparser.getUsers());
 		    } else if (type.equalsIgnoreCase("csv")) {
 	
 				log.info("Executing CSV Parser...");
 				// User details are extracted from posts data file itself.
 				// (data.csv)
 		
-				postsPath = "datasets/" + databaseName + "/data.csv";
+				postsPath = "datasets/" + datasetName + "/data.csv";
 				ERSCSVParser csvparser = new ERSCSVParser(postsPath);
-				dbHandler.addPosts(databaseName, csvparser.getPosts());
+				dbHandler.addPosts(datasetName, csvparser.getPosts());
 				List<UserCSV> users = csvparser.getUsers();
 		
 				if (users != null && users.size() > 0) {
-				    dbHandler.addUsers(databaseName, users);
+				    dbHandler.addUsers(datasetName, users);
 				}
 		    } else if (type.equalsIgnoreCase("json")) {
 				log.info("Executing Json Parser...");
 		
 				ERSJsonParser jsonparser = new ERSJsonParser(postsPath);
-				dbHandler.addPosts(databaseName, jsonparser.getPosts());
+				dbHandler.addPosts(datasetName, jsonparser.getPosts());
 				List<User> users = jsonparser.getUsers();
 				if (users != null && users.size() > 0) {
-				    dbHandler.addUsers(databaseName, users);
+				    dbHandler.addUsers(datasetName, users);
 				}
 		    } else {
 		    	throw new ERSException(ERSMessage.UNSUPPORTED_TYPE);
@@ -367,12 +372,12 @@ public class ExpertRecommenderService extends Service {
 		} catch (SQLException e) {
 		    e.printStackTrace();
 		    res = new HttpResponse(ERSMessage.SQL_FAILURE);
-		    res.setStatus(200);
+		    res.setStatus(500);
 		    return res;
 		} catch (ERSException e) {
 		    e.printStackTrace();
 		    res = new HttpResponse(ERSMessage.UNSUPPORTED_TYPE);
-		    res.setStatus(200);
+		    res.setStatus(400);
 		    return res;
 		}
 	
@@ -392,29 +397,31 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets/{datasetId}/indexer")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Indexing success") })
-	@ApiOperation(value = "Index the data in the dataset.",
-	notes = "Indexes the text stored in the database.")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Indexing success"), @ApiResponse(code = 500, message = "Indexing, Connection or Query Failure") })
+	@ApiOperation(value = "Index the Data.",
+		notes = "Indexes the text stored in the database for the given dataset.")
     public HttpResponse index(@PathParam("datasetId") String id) {
 
-		String databaseName = getDatabaseName(id);
+		String datasetName = getDatasetName(id);
 		String indexDir = getIndexDirectory(id);
 	
 		DatabaseHandler dbHandler = new DatabaseHandler();
 		HttpResponse res = null;
 		try {
-		    LuceneMysqlIndexer indexer = new LuceneMysqlIndexer(databaseName, dbHandler.getConnectionSource(), indexDir);
+		    LuceneMysqlIndexer indexer = new LuceneMysqlIndexer(datasetName, dbHandler.getConnectionSource(), indexDir);
 		    indexer.buildIndex();
 		    res = new HttpResponse(ERSMessage.INDEX_SUCCESS);
+			res.setStatus(200);
 		} catch (SQLException e) {
 		    e.printStackTrace();
 		    res = new HttpResponse(ERSMessage.SQL_FAILURE);
+			res.setStatus(500);
 		} catch (Exception e) {
 		    e.printStackTrace();
 		    res = new HttpResponse(ERSMessage.INDEX_FAILURE);
+			res.setStatus(500);
 		}
 	
-		res.setStatus(200);
 		return res;
     }
 
@@ -427,19 +434,19 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets/{datasetId}/semantics")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-	@ApiOperation(value = "Adds semantics to the posts in the dataset.",
-	notes = "Adds semantic tags to the text.")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 500, message = "Semantic Addition, Connection or Query Failure") })
+	@ApiOperation(value = "Add Semantic to Dataset.",
+		notes = "Adds semantic tags to the posts in the dataset.")
     public HttpResponse addSemantics(@PathParam(value = "datasetId") String datasetId) {
 
-		String dbName = getDatabaseName(datasetId);
+		String datasetName = getDatasetName(datasetId);
 		DatabaseHandler dbHandler = new DatabaseHandler();
 	
 		HttpResponse res;
 		try {
-		    dbHandler.addSemanticTags(dbName);
+		    dbHandler.addSemanticTags(datasetName);
 		} catch (Exception e) {
-		    res = new HttpResponse(ERSMessage.ADD_SEMANTICS_FAILURE, 201);
+		    res = new HttpResponse(ERSMessage.ADD_SEMANTICS_FAILURE, 500);
 		    return res;
 		}
 	
@@ -468,9 +475,9 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets/{datasetId}/algorithms/{algorithmName}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-	@ApiOperation(value = "Executes the requested algorithm on the dataset.",
-	notes = "Returns the id of the expert collection, id of evaluation metrics and id of the visualization.")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 500, message = "Connection or Query Failure") })
+	@ApiOperation(value = "Execute the Requested Algorithm on the Dataset.",
+		notes = "Returns the id of the expert collection, id of evaluation metrics and id of the visualization.")
     public HttpResponse applyAlgorithm(@PathParam("datasetId") String datasetId, @PathParam("algorithmName") String algorithmName,
 	    @ContentParam String query, 
 	    @DefaultValue("false") @QueryParam("evaluation") boolean isEvaluation,
@@ -511,7 +518,7 @@ public class ExpertRecommenderService extends Service {
 		    }
 		} catch (ERSException e) {
 		    HttpResponse res = new HttpResponse(e.getMessage());
-		    res.setStatus(200);
+		    res.setStatus(500);
 		    return res;
 		}
 		scontext = new ScoringContext(strategy);
@@ -540,15 +547,15 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets/{datasetId}/experts/{expertsId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-	@ApiOperation(value = "Get the experts from the dataset with respect to an expert id.",
-	notes = "Returns the collection of experts for the specific id. Id is retrieved after applying recommendetaion algorithm on the dataset")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 400, message = "Invalid Input") })
+	@ApiOperation(value = "Get the Expert of the Dataset.",
+		notes = "Returns the collection of experts for the specific id. Id is retrieved after applying recommendation algorithm on the dataset.")
     public HttpResponse getExperts(@PathParam("datasetId") String datasetId, @PathParam("expertsId") String expertsId) {
 		log.info("expertsId:: " + expertsId);
-		String databaseName = getDatabaseName(datasetId);
-		if (databaseName == null) {
+		String datasetName = getDatasetName(datasetId);
+		if (datasetName == null) {
 		    try {
-		    	throw new ERSException(ExceptionMessages.DATABASE_NOT_FOUND);
+		    	throw new ERSException(ExceptionMessages.DATASET_NOT_FOUND);
 		    } catch (ERSException e) {
 		    	e.printStackTrace();
 				HttpResponse res = new HttpResponse(e.getMessage());
@@ -561,7 +568,7 @@ public class ExpertRecommenderService extends Service {
 	
 		HttpResponse res = null;
 		if (expertsId != null && Long.parseLong(expertsId) != -1) {
-		    String experts = dbHandler.getExperts(databaseName, Long.parseLong(expertsId));
+		    String experts = dbHandler.getExperts(datasetName, Long.parseLong(expertsId));
 		    res = new HttpResponse(experts);
 		} else {
 		    res = new HttpResponse(ERSMessage.EXPERTS_NOT_FOUND);
@@ -569,7 +576,6 @@ public class ExpertRecommenderService extends Service {
 	
 		res.setStatus(200);
 		return res;
-		
     }
     
     /**
@@ -582,15 +588,15 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets/{datasetId}/evaluations/{evaluationId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.TEXT_PLAIN)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-	@ApiOperation(value = "Get the evaluation results.",
-	notes = "Returns the evaluation metrics computed if requested when applying algorithms. Evaluation Id is retrieved after applying algorithm on the dataset.")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 400, message = "Invalid Input") })
+	@ApiOperation(value = "Get the Evaluation Results.",
+		notes = "Returns the evaluation metrics computed if requested when applying algorithms. Evaluation Id is retrieved after applying algorithm on the dataset.")
     public HttpResponse getEvaluationResults(@PathParam("datasetId") String datasetId, @PathParam("evaluationId") String evaluationId) {
 
-		String databaseName = getDatabaseName(datasetId);
-		if (databaseName == null) {
+		String datasetName = getDatasetName(datasetId);
+		if (datasetName == null) {
 		    try {
-		    	throw new ERSException(ExceptionMessages.DATABASE_NOT_FOUND);
+		    	throw new ERSException(ExceptionMessages.DATASET_NOT_FOUND);
 		    } catch (ERSException e) {
 		    	e.printStackTrace();
 				HttpResponse res = new HttpResponse(e.getMessage());
@@ -601,7 +607,7 @@ public class ExpertRecommenderService extends Service {
 	
 		log.info("evaluationId:: " + evaluationId);
 		DatabaseHandler dbHandler = new DatabaseHandler();
-		String evaluationMeasures = dbHandler.getEvaluationMetrics(databaseName, Long.parseLong(evaluationId));
+		String evaluationMeasures = dbHandler.getEvaluationMetrics(datasetName, Long.parseLong(evaluationId));
 	
 		HttpResponse res = new HttpResponse(evaluationMeasures);
 		res.setStatus(200);
@@ -618,14 +624,14 @@ public class ExpertRecommenderService extends Service {
     @Produces(MediaType.APPLICATION_XML)
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-	@ApiOperation(value = "Get the visualization graph",
-	notes = "Returns the visualization graph to be consumed by the client.")
+	@ApiOperation(value = "Get the Visualization Graph.",
+		notes = "Returns the visualization graph to be consumed by the client.")
     public HttpResponse getVisulaizationData(@PathParam("datasetId") String datasetId, @PathParam("visualizationId") String visId) {
 		log.info("expertsId:: " + visId);
 	
-		String databaseName = getDatabaseName(datasetId);
+		String datasetName = getDatasetName(datasetId);
 		DatabaseHandler dbHandler = new DatabaseHandler();
-		String visGraph = dbHandler.getVisGraph(databaseName, Long.parseLong(visId));
+		String visGraph = dbHandler.getVisGraph(datasetName, Long.parseLong(visId));
 	
 		String fileContentsString = "data:" + "text/xml" + ";base64," + Base64.encodeBase64String(visGraph.getBytes());
 	
@@ -650,32 +656,38 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets/{datasetId}/algorithms/datamodeling")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-	@ApiOperation(value = "Apply data modeling technique",
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 400, message = "Invalid Input") })
+	@ApiOperation(value = "Apply Data Modeling Technique.",
 	notes = "Returns the id of the expert collection.")
     public HttpResponse modelExperts(@PathParam("datasetId") String datasetId, @ContentParam String query,
     	@DefaultValue("0.5") @QueryParam("alpha") double alpha) {
     
 		Application.algoName = "datamodeling";
 	
-		String databaseName = getDatabaseName(datasetId);
-		if (databaseName == null) {
+		String datasetName = getDatasetName(datasetId);
+		if (datasetName == null) {
 		    try {
-		    	throw new ERSException(ExceptionMessages.DATABASE_NOT_FOUND);
+		    	throw new ERSException(ExceptionMessages.DATASET_NOT_FOUND);
 		    } catch (ERSException e) {
 		    	e.printStackTrace();
+				HttpResponse res = new HttpResponse(e.getMessage());
+				res.setStatus(400);
+				return res;
 		    }
 		}
 	
 		DatabaseHandler dbHandler = new DatabaseHandler();
 	
-		dbHandler.truncateEvaluationTable(databaseName);
+		dbHandler.truncateEvaluationTable(datasetName);
 	
 		if (query == null || query.length() < 0) {
 		    try {
 		    	throw new ERSException(ExceptionMessages.QUERY_NOT_VALID);
 		    } catch (ERSException e) {
 		    	e.printStackTrace();
+				HttpResponse res = new HttpResponse(e.getMessage());
+				res.setStatus(400);
+				return res;
 		    }
 		}
 	
@@ -688,7 +700,7 @@ public class ExpertRecommenderService extends Service {
 		}
 	
 		ConnectionSource connectionSource = dbHandler.getConnectionSource();
-		long queryId = qAnalyzer.getId(databaseName, connectionSource);
+		long queryId = qAnalyzer.getId(datasetName, connectionSource);
 	
 		TextMapper dbTextIndexer = null;
 		SematicsMapper dbSemanticsIndexer = null;
@@ -696,7 +708,7 @@ public class ExpertRecommenderService extends Service {
 		Map<Long, UserEntity> usermap = null;
 	
 		try {
-		    usermap = UserMapSingleton.getInstance().getUserMap(databaseName, connectionSource);
+		    usermap = UserMapSingleton.getInstance().getUserMap(datasetName, connectionSource);
 		} catch (SQLException e1) {
 		    e1.printStackTrace();
 		}
@@ -714,13 +726,13 @@ public class ExpertRecommenderService extends Service {
 	
 		    dbSemanticsIndexer = new SematicsMapper(dbHandler.getConnectionSource());
 		    TopDocs semanticDocs = searcher.performSemanticSearch();
-		    dbSemanticsIndexer.buildIndex(databaseName, semanticDocs, qAnalyzer.getText(), getIndexDirectory(datasetId));
+		    dbSemanticsIndexer.buildIndex(datasetName, semanticDocs, qAnalyzer.getText(), getIndexDirectory(datasetId));
 	
 		    ScoringContext scontext = new ScoringContext(new DataModelingStrategy(dbTextIndexer, dbSemanticsIndexer, usermap, alpha));
 		    scontext.executeStrategy();
 		    expertPosts = scontext.getExperts();
 	
-		    expertsId = dbHandler.addExperts(databaseName, queryId, expertPosts);
+		    expertsId = dbHandler.addExperts(datasetName, queryId, expertPosts);
 	
 		    log.info("Evaluating modeling technique");
 	
@@ -729,7 +741,7 @@ public class ExpertRecommenderService extends Service {
 		    // Compute Evaluation Measures.
 		    try {
 			eMeasure.computeAll();
-			eMeasure.save(databaseName, queryId, connectionSource);
+			eMeasure.save(datasetName, queryId, connectionSource);
 			eMeasureId = eMeasure.getId();
 		    } catch (IOException e) {
 			e.printStackTrace();
@@ -764,24 +776,27 @@ public class ExpertRecommenderService extends Service {
     @Path("datasets/{datasetId}/experts/{expertsCollectionId}/expert/{expertId}/tags")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 401, message = "Unauthorized") })
-	@ApiOperation(value = "Retrieves the related tags for the user",
-	notes = "Returns tags associated with experts for the specific post.")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 400, message = "Invalid Input") })
+	@ApiOperation(value = "Retrieve the Related Tags for the User.",
+		notes = "Returns tags associated with experts for the specific post.")
     public HttpResponse getTags(@PathParam("datasetId") String datasetId, @PathParam("expertsCollectionId") String expertCollectionId,
 	    @PathParam("expertId") String expertId) {
 
-		String databaseName = getDatabaseName(datasetId);
-		if (databaseName == null) {
+		String datasetName = getDatasetName(datasetId);
+		if (datasetName == null) {
 		    try {
-		    	throw new ERSException(ExceptionMessages.DATABASE_NOT_FOUND);
+		    	throw new ERSException(ExceptionMessages.DATASET_NOT_FOUND);
 		    } catch (ERSException e) {
 		    	e.printStackTrace();
+				HttpResponse res = new HttpResponse(e.getMessage());
+				res.setStatus(400);
+				return res;
 		    }
 		}
 	
 		DatabaseHandler dbHandler = new DatabaseHandler();
 		
-		TagExtractor extractor = new TagExtractor(databaseName, dbHandler, expertCollectionId, expertId);
+		TagExtractor extractor = new TagExtractor(datasetName, dbHandler, expertCollectionId, expertId);
 	
 		HttpResponse res = new HttpResponse(extractor.getTags());
 		res.setStatus(200);
@@ -797,109 +812,33 @@ public class ExpertRecommenderService extends Service {
      */
     @GET
     @Path("datasets/{datasetId}/experts/{expertsCollectionId}/expert/{expertId}/posts")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
-	@ApiOperation(value = "Returns the related post of the expert.",
-	notes = "Returns the related posts of the expert user.")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 400, message = "Invalid Input") })
+	@ApiOperation(value = "Get the Related Post of the Expert.",
+		notes = "Returns the related posts of the expert user.")
     public HttpResponse getPosts(@PathParam("datasetId") String datasetId, @PathParam("expertsCollectionId") String expertCollectionId,
 	    @PathParam("expertId") String expertId) {
 
-		String databaseName = getDatabaseName(datasetId);
-		if (databaseName == null) {
+		String datasetName = getDatasetName(datasetId);
+		if (datasetName == null) {
 		    try {
-		    	throw new ERSException(ExceptionMessages.DATABASE_NOT_FOUND);
+		    	throw new ERSException(ExceptionMessages.DATASET_NOT_FOUND);
 		    } catch (ERSException e) {
 		    	e.printStackTrace();
+				HttpResponse res = new HttpResponse(e.getMessage());
+				res.setStatus(400);
+				return res;
 		    }
 		}
 	
 		DatabaseHandler dbHandler = new DatabaseHandler();
 		
-		RelatedPostsExtractor extractor = new RelatedPostsExtractor(databaseName, dbHandler, expertCollectionId, expertId);
+		RelatedPostsExtractor extractor = new RelatedPostsExtractor(datasetName, dbHandler, expertCollectionId, expertId);
 	
 		HttpResponse res = new HttpResponse(extractor.getPosts());
 		res.setStatus(200);
 		return res;
     }
 
-
-    /**
-     * 
-     * @param databaseName
-     *            Name of the database to store corresponding to dataset.
-     * @param displayName
-     *            Display Name of the dataset. Useful for the web client.
-     * @return
-     */
-//    @POST
-//    @ResourceListApi(description = "Creates all the required tables required for the dataset and recommendation service.")
-//    @Path("datasets/{databaseName}/prepare")
-//    public HttpResponse prepareDataset(@PathParam("databaseName") String databaseName, @ContentParam String displayName) {
-//
-//	if (databaseName == null || StringUtils.isAlphanumeric(databaseName) == false) {
-//	    try {
-//		throw new ERSException(ERSMessage.DATASET_NAME_INVALID);
-//	    } catch (ERSException e) {
-//		e.printStackTrace();
-//		HttpResponse res = new HttpResponse(e.getMessage());
-//		res.setStatus(200);
-//	    }
-//	}
-//
-//	// TODO: If dataset is not present in the path throw an exception.
-////	DatabaseHandler handler = new DatabaseHandler("ersdb", "root", "");
-//	DatabaseHandler handler = new DatabaseHandler();
-//	DataInfoEntity entity = new DataInfoEntity();
-//	try {
-//	    Dao<DataInfoEntity, Long> DatasetInfoDao = DaoManager.createDao(handler.getConnectionSource(), DataInfoEntity.class);
-//
-//	    QueryBuilder<DataInfoEntity, Long> qb = DatasetInfoDao.queryBuilder();
-//	    qb.where().eq("database_name", databaseName);
-//	    List<DataInfoEntity> entities = qb.query();
-//
-//	    // If entry is present, return the id. Else create and insert the
-//	    // entity.
-//	    if (entities != null && entities.size() > 0) {
-//		entity = entities.get(0);
-//	    } else {
-//		entity.setDatabase(databaseName);
-//		if (displayName == null)
-//		    displayName = databaseName;
-//
-//		entity.setDataset(displayName);
-//
-//		Calendar cal = Calendar.getInstance();
-//		entity.setDate(cal.getTime());
-//
-//		entity.setFilepath(databaseName);
-//		entity.setIndexFilepath(databaseName + "_index");
-//		DatasetInfoDao.create(entity);
-//	    }
-//	} catch (SQLException e) {
-//	    e.printStackTrace();
-//	}
-//
-//	// Create database and necessary tables in the database.
-////	DatabaseHandler dbHandler = new DatabaseHandler(databaseName, "root", "");
-//	DatabaseHandler dbHandler = new DatabaseHandler();
-//	ConnectionSource connectionSrc;
-//	try {
-//	    connectionSrc = dbHandler.getConnectionSource();
-//	    // Create necessary tables.
-//	    TableUtils.createTableIfNotExists(connectionSrc, DataEntity.class);
-//	    TableUtils.createTableIfNotExists(connectionSrc, UserEntity.class);
-//	    TableUtils.createTableIfNotExists(connectionSrc, SemanticTagEntity.class);
-//	    TableUtils.createTableIfNotExists(connectionSrc, QueryEntity.class);
-//	    TableUtils.createTableIfNotExists(connectionSrc, EvaluationMetricsEntity.class);
-//	    TableUtils.createTableIfNotExists(connectionSrc, GraphEntity.class);
-//	    TableUtils.createTableIfNotExists(connectionSrc, ExpertEntity.class);
-//	} catch (SQLException e) {
-//	    e.printStackTrace();
-//	}
-//
-//	HttpResponse res = new HttpResponse(String.valueOf(entity.getId()));
-//	res.setStatus(200);
-//	return res;
-//    }
 
     // TODO:Refactor the path and the method.
     @GET
@@ -968,13 +907,16 @@ public class ExpertRecommenderService extends Service {
 
     @GET
     @Path("datasets/{datasetId}/users/{userId}")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
+	@ApiOperation(value = "Get User of the Dataset.",
+		notes = "Returns the user details from the given dataset.")
     public HttpResponse getUser(@PathParam("userId") String userId, @PathParam("datasetId") String datasetId) {
 
 	System.out.println("expertsId:: " + userId);
 
-	String dbName = getDatabaseName(datasetId);
+	String datasetName = getDatasetName(datasetId);
 	DatabaseHandler dbHandler = new DatabaseHandler();
-	String userDetails = dbHandler.getUser(dbName, Long.parseLong(userId));
+	String userDetails = dbHandler.getUser(datasetName, Long.parseLong(userId));
 
 	HttpResponse res = new HttpResponse(userDetails);
 	res.setStatus(200);
@@ -987,8 +929,8 @@ public class ExpertRecommenderService extends Service {
     	@DefaultValue("-1") @QueryParam("expertsId") String expertsId, 
     	@DefaultValue("-1") @QueryParam("position") int position) {
 
-		String databaseName = getDatabaseName(datasetId);
-		if (databaseName == null) {
+		String datasetName = getDatasetName(datasetId);
+		if (datasetName == null) {
 		    // Throw custom exception.
 		}
 	
@@ -996,7 +938,7 @@ public class ExpertRecommenderService extends Service {
 	
 		// log.info("USRNAME:: " + username);
 		try {
-		    TableUtils.createTableIfNotExists(dbHandler.getConnectionSource(), dbHandler.getEntityConfigOfDataSet(dbHandler.getConnectionSource(), UserClickDetails.class, databaseName) );
+		    TableUtils.createTableIfNotExists(dbHandler.getConnectionSource(), dbHandler.getEntityConfigOfDataSet(dbHandler.getConnectionSource(), UserClickDetails.class, datasetName) );
 		} catch (SQLException e) {
 		    e.printStackTrace();
 		}
@@ -1006,20 +948,49 @@ public class ExpertRecommenderService extends Service {
 
     @POST
     @Path("datasets/{datasetId}/skillDistribution")
-	@ApiOperation(value = "Extracts the most popular skill tags from the dataset.",
-	notes = "")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success") })
+	@ApiOperation(value = "Get Popular Skill Tags.",
+		notes = "Extracts the Most Popular Skill Tags from the Dataset.")
     public HttpResponse createSkillDistribution(@PathParam(value = "datasetId") String datasetId) {
 
-		String dbName = getDatabaseName(datasetId);
+		String datasetName = getDatasetName(datasetId);
 		DatabaseHandler dbHandler = new DatabaseHandler();
 	
 		HttpResponse res;
-		dbHandler.createTagDistribution(dbName);
+		dbHandler.createTagDistribution(datasetName);
 	
 		res = new HttpResponse(ERSMessage.SKILL_DISTRIBUTION_CREATED, 200);
 	
 		return res;
     }
+    
+    // //////////////////////////////////////////////////////////////////////////////////////
+ 	// Methods providing a Swagger documentation of the service API.
+ 	// //////////////////////////////////////////////////////////////////////////////////////
+
+ 	/**
+ 	 * Returns the API documentation for this annotated class for purposes of the Swagger 2.0 documentation.
+ 	 * 
+ 	 * @return The resource's documentation.
+ 	 */
+ 	@GET
+ 	@Path("/swagger.json")
+ 	@Produces(MediaType.APPLICATION_JSON)
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 404, message = "Resource Not Found"), @ApiResponse(code = 500, message = "Swagger Failure") })
+ 	@ApiOperation(value = "Get Swagger Documentation.",
+ 		notes = "Returns the Swagger API declaration in JSON format.")
+ 	public HttpResponse getSwaggerJSON() {
+ 		Swagger swagger = new Reader(new Swagger()).read(this.getClass());
+ 		if (swagger == null) {
+ 			return new HttpResponse("Swagger API declaration not available!", HttpURLConnection.HTTP_NOT_FOUND);
+ 		}
+ 		try {
+ 			return new HttpResponse(Json.mapper().writeValueAsString(swagger), HttpURLConnection.HTTP_OK);
+ 		} catch (JsonProcessingException e) {
+ 			e.printStackTrace();
+ 			return new HttpResponse(e.getMessage(), 500);
+ 		}
+ 	}
 
     /**
      * 
@@ -1029,14 +1000,14 @@ public class ExpertRecommenderService extends Service {
      * 
      * @return Returns the database name associated with a particular dataset.
      */
-    private String getDatabaseName(String datasetId) {
+    private String getDatasetName(String datasetId) {
 		DatabaseHandler handler = new DatabaseHandler();
-		String databaseName = null;
+		String datasetName = null;
 		try {
 		    Dao<DataInfoEntity, Long> DatasetInfoDao = DaoManager.createDao(handler.getConnectionSource(), DataInfoEntity.class);
 		    DataInfoEntity datasetEntity = DatasetInfoDao.queryForId(Long.parseLong(datasetId));
 		    if(datasetEntity != null)
-		    	databaseName = datasetEntity.getDatabaseName();
+		    	datasetName = datasetEntity.getDatasetName();
 	
 		} catch (SQLException e) {
 		    e.printStackTrace();
@@ -1044,7 +1015,7 @@ public class ExpertRecommenderService extends Service {
 	
 		handler.close();
 	
-		return databaseName;
+		return datasetName;
     }
 
     private String getIndexDirectory(String datasetId) {
@@ -1064,31 +1035,5 @@ public class ExpertRecommenderService extends Service {
 	return filepath;
     }
 
-    @POST
-    @Path("datasets")
-    public HttpResponse uploadDataset() {
-	// TODO: Allow users to upload datasets.
-	return null;
-    }
-
-    // ////////////////////////////////////////////////////////////////
-    // /////// SWAGGER
-    // ////////////////////////////////////////////////////////////////
-
-//    @GET
-//    @Path("api-docs")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public HttpResponse getSwaggerResourceListing() {
-//	return RESTMapper.getSwaggerResourceListing(this.getClass());
-//    }
-//
-//    @GET
-//    @Path("api-docs/{tlr}")
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public HttpResponse getSwaggerApiDeclaration(@PathParam("tlr") String tlr) {
-//	// return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr,
-//	// "http://127.0.0.1:8080/ocd/");
-//	return RESTMapper.getSwaggerApiDeclaration(this.getClass(), tlr, "https://api.learning-layers.eu/ers/");
-//    }
 
 }

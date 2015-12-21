@@ -40,7 +40,7 @@ import com.j256.ormlite.support.ConnectionSource;
  *         analyzes the query, searches the index and creates a graph.
  */
 public abstract class AbstractSearcher {
-    protected String databaseName = null;
+    protected String datasetName = null;
     protected DatabaseHandler dbHandler = null;
     protected ConnectionSource connectionSource = null;
 
@@ -81,7 +81,7 @@ public abstract class AbstractSearcher {
 	connect();
 	analyseQuery();
 	searchIndex();
-	createGraph(databaseName);
+	createGraph(datasetName);
     }
 
     /**
@@ -92,8 +92,8 @@ public abstract class AbstractSearcher {
      * server.
      */
     public void connect() {
-	databaseName = getDatabaseName(requestParameters.datasetId);
-	if (databaseName == null) {
+    datasetName = getDatasetName(requestParameters.datasetId);
+	if (datasetName == null) {
 	    // Throw custom exception.
 	}
 
@@ -103,7 +103,7 @@ public abstract class AbstractSearcher {
 
 	Application.algoName = requestParameters.algorithmName;
 	// Application.intraWeight = intraWeight;
-	dbHandler.truncateEvaluationTable(databaseName);
+	dbHandler.truncateEvaluationTable(datasetName);
     }
 
     /**
@@ -127,9 +127,9 @@ public abstract class AbstractSearcher {
 	    e.printStackTrace();
 	}
 
-	queryId = qAnalyzer.getId(databaseName, connectionSource);
+	queryId = qAnalyzer.getId(datasetName, connectionSource);
 	try {
-	    usermap = UserMapSingleton.getInstance().getUserMap(databaseName, connectionSource);
+	    usermap = UserMapSingleton.getInstance().getUserMap(datasetName, connectionSource);
 	} catch (SQLException e1) {
 	    e1.printStackTrace();
 	}
@@ -146,7 +146,7 @@ public abstract class AbstractSearcher {
     public void searchIndex() throws ERSException {
 	try {
 	    // System.out.println("Performing search...");
-	    searcher = new LuceneSearcher(qAnalyzer.getText(), databaseName + "_index");
+	    searcher = new LuceneSearcher(qAnalyzer.getText(), datasetName + "_index");
 	    TopDocs docs = searcher.performSearch(qAnalyzer.getText(), Integer.MAX_VALUE);
 	    Date dateFilter = null;
 	    searcher.buildQnAMap(docs, dateFilter);
@@ -165,7 +165,7 @@ public abstract class AbstractSearcher {
      * @throws ERSException
      *             An exception is thrown if generation of graph fails.
      */
-    public void createGraph(String databaseName) throws ERSException {
+    public void createGraph(String datasetName) throws ERSException {
 
 	try {
 	    // System.out.println("Performing search...");
@@ -175,7 +175,7 @@ public abstract class AbstractSearcher {
 
 	    graphWriter = new GraphWriter(jcreator);
 	    graphWriter.saveToGraphMl("graph_jung.graphml");
-	    graphWriter.saveToDb(databaseName, queryId, connectionSource);
+	    graphWriter.saveToDb(datasetName, queryId, connectionSource);
 
 	} catch (Exception e) {
 	    e.printStackTrace();
@@ -194,7 +194,7 @@ public abstract class AbstractSearcher {
      *            A json string consisting of expert details.
      */
     public void save(LinkedHashMap<String, Double> expert2score, String experts) {
-	expertsId = dbHandler.addExperts(databaseName, queryId, experts);
+	expertsId = dbHandler.addExperts(datasetName, queryId, experts);
 
 	// If evaluation is requested.
 
@@ -204,7 +204,7 @@ public abstract class AbstractSearcher {
 	    // Compute Evaluation Measures.
 	    try {
 		eMeasure.computeAll();
-		eMeasure.save(databaseName, queryId, connectionSource);
+		eMeasure.save(datasetName, queryId, connectionSource);
 		eMeasureId = eMeasure.getId();
 	    } catch (IOException e) {
 		e.printStackTrace();
@@ -242,16 +242,16 @@ public abstract class AbstractSearcher {
      *            An id identifying the dataset. Ids are stored in a database
      *            called ersdb.
      * 
-     * @return Returns the database name associated with a particular dataset.
+     * @return Returns the dataset name associated with a particular dataset.
      */
-    private String getDatabaseName(String datasetId) {
+    private String getDatasetName(String datasetId) {
 //	DatabaseHandler handler = new DatabaseHandler("ersdb", "root", "");//TODO
 	DatabaseHandler handler = new DatabaseHandler();
-	String databaseName = null;
+	String datasetName = null;
 	try {
 	    Dao<DataInfoEntity, Long> DatasetInfoDao = DaoManager.createDao(handler.getConnectionSource(), DataInfoEntity.class);
 	    DataInfoEntity datasetEntity = DatasetInfoDao.queryForId(Long.parseLong(datasetId));
-	    databaseName = datasetEntity.getDatabaseName();
+	    datasetName = datasetEntity.getDatasetName();
 
 	} catch (SQLException e) {
 	    e.printStackTrace();
@@ -259,7 +259,7 @@ public abstract class AbstractSearcher {
 
 	handler.close();
 
-	return databaseName;
+	return datasetName;
     }
 
     /**

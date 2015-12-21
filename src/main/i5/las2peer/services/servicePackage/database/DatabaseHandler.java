@@ -56,16 +56,6 @@ import com.j256.ormlite.table.DatabaseTableConfig;
 public class DatabaseHandler extends MySqlOpenHelper {
     private Log log = LogFactory.getLog(DatabaseHandler.class);
 
-    /**
-     * @param dbName
-     *            A database name to be used during the current session.
-     * @param username
-     *            A username for the database. (This is static during
-     *            development)
-     * @param password
-     *            A password for the database. (This is static during
-     *            development)
-     */
     public DatabaseHandler() {
 	super();
     }
@@ -82,10 +72,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
      *             table constraints.
      * 
      * */
-    public void addPosts(String databaseName, List<? extends IPost> posts) throws SQLException {
+    public void addPosts(String datasetName, List<? extends IPost> posts) throws SQLException {
 
 	ConnectionSource source = super.getConnectionSource();
-	Dao<DataEntity, Long> DataDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, DataEntity.class, databaseName) );
+	Dao<DataEntity, Long> DataDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, DataEntity.class, datasetName) );
 
 	DataEntity data = null;
 	StopWordRemover remover = null;
@@ -174,10 +164,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
      *             table constraints.
      * */
 
-    public void addUsers(String databaseName, List<? extends IUser> users) throws SQLException {
+    public void addUsers(String datasetName, List<? extends IUser> users) throws SQLException {
 	ConnectionSource source = super.getConnectionSource();
 	UserEntity entity = null;
-	Dao<UserEntity, Long> UserDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, UserEntity.class, databaseName) );
+	Dao<UserEntity, Long> UserDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, UserEntity.class, datasetName) );
 
 	// Iterate tags and create DAO objects.
 	for (IUser user : users) {
@@ -232,13 +222,13 @@ public class DatabaseHandler extends MySqlOpenHelper {
      * 
      * */
 
-    public void addSemanticTags(String databaseName) {
+    public void addSemanticTags(String datasetName) {
 	try {
 	    ConnectionSource source = super.getConnectionSource();
-	    Dao<SemanticTagEntity, Long> SemanticDao = DaoManager.createDao( source, getEntityConfigOfDataSet(source, SemanticTagEntity.class, databaseName) );
+	    Dao<SemanticTagEntity, Long> SemanticDao = DaoManager.createDao( source, getEntityConfigOfDataSet(source, SemanticTagEntity.class, datasetName) );
 
 	    // Iterate all the posts and extract tags from them.
-	    Dao<DataEntity, Long> postsDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, DataEntity.class, databaseName) );
+	    Dao<DataEntity, Long> postsDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, DataEntity.class, datasetName) );
 	    List<DataEntity> data_entites = postsDao.queryForAll();
 
 	    SemanticTagEntity tagEntity = null;
@@ -278,8 +268,8 @@ public class DatabaseHandler extends MySqlOpenHelper {
      * 
      * */
 
-    public List<UserEntity> getUserDAOs(String databaseName) throws SQLException {
-	Dao<UserEntity, Long> userDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), UserEntity.class, databaseName) );
+    public List<UserEntity> getUserDAOs(String datasetName) throws SQLException {
+	Dao<UserEntity, Long> userDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), UserEntity.class, datasetName) );
 	return userDao.queryForAll();
     }
 
@@ -293,10 +283,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
      * 
      * */
 
-    public void markExpertsForEvaluation(String databaseName, ConnectionSource connectionSrc) throws SQLException {
+    public void markExpertsForEvaluation(String datasetName, ConnectionSource connectionSrc) throws SQLException {
 	List<Long> reputations = new ArrayList<Long>();
 
-	Dao<UserEntity, Long> userDao = DaoManager.createDao(connectionSrc, getEntityConfigOfDataSet(connectionSrc, UserEntity.class, databaseName) );
+	Dao<UserEntity, Long> userDao = DaoManager.createDao(connectionSrc, getEntityConfigOfDataSet(connectionSrc, UserEntity.class, datasetName) );
 	List<UserEntity> user_entites = userDao.queryForAll();
 	for (UserEntity entity : user_entites) {
 	    long reputation = entity.getReputation();
@@ -326,10 +316,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
      * @param evaluationId
      * @return
      */
-    public String getEvaluationMetrics(String databaseName, long evaluationId) {
+    public String getEvaluationMetrics(String datasetName, long evaluationId) {
 	Dao<EvaluationMetricsEntity, Long> evaluationDao = null;
 	try {
-	    evaluationDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), EvaluationMetricsEntity.class, databaseName) );
+	    evaluationDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), EvaluationMetricsEntity.class, datasetName) );
 	    EvaluationMetricsEntity entity = evaluationDao.queryForId(evaluationId);
 	    if(entity == null) return ERSMessage.EVALUATION_NOT_FOUND;
 	    return entity.getMetrics();
@@ -342,14 +332,14 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
     /**
      * 
-     * @param databaseName 
+     * @param datasetName 
      * @param queryId
      * @return
      */
-    public String getVisGraph(String databaseName, long queryId) {
+    public String getVisGraph(String datasetName, long queryId) {
 	Dao<GraphEntity, Long> visulaizationDao = null;
 	try {
-	    visulaizationDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), GraphEntity.class, databaseName) );
+	    visulaizationDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), GraphEntity.class, datasetName) );
 	    GraphEntity entity = visulaizationDao.queryForId(queryId);
 
 	    return entity.getGraph();
@@ -362,16 +352,16 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
     /**
      * 
-     * @param databaseName 
+     * @param datasetName 
      * @param queryId
      *            Id to identify the expert list.
      * @param experts
      *            A list of experts and their details stored as json string.
      * @return
      */
-    public long addExperts(String databaseName, long queryId, String experts) {
+    public long addExperts(String datasetName, long queryId, String experts) {
 	try {
-	    Dao<ExpertEntity, Long> ExpertDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), ExpertEntity.class, databaseName) );
+	    Dao<ExpertEntity, Long> ExpertDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), ExpertEntity.class, datasetName) );
 	    ExpertEntity entity = new ExpertEntity();
 	    entity.setQueryId(queryId);
 	    entity.setExperts(experts);
@@ -390,10 +380,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
      * @param expertsId
      * @return
      */
-    public String getExperts(String databaseName, long expertsId) {
+    public String getExperts(String datasetName, long expertsId) {
 	Dao<ExpertEntity, Long> expertsDao = null;
 	try {
-	    expertsDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), ExpertEntity.class, databaseName) );
+	    expertsDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), ExpertEntity.class, datasetName) );
 	    ExpertEntity entity = expertsDao.queryForId(expertsId);
 	    if(entity == null) return ERSMessage.EXPERTS_NOT_FOUND;
 	    return entity.getExperts();
@@ -404,10 +394,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	return null;
     }
 
-    public void truncateEvaluationTable(String databaseName) {
+    public void truncateEvaluationTable(String datasetName) {
 	Dao<EvaluationMetricsEntity, Long> evaluationDao = null;
 	try {
-	    evaluationDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), EvaluationMetricsEntity.class, databaseName) );
+	    evaluationDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), EvaluationMetricsEntity.class, datasetName) );
 	    evaluationDao.delete(evaluationDao.queryForAll());
 	} catch (SQLException e) {
 	    e.printStackTrace();
@@ -415,10 +405,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
     }
 
-    public void saveReputationValues(String databaseName) {
+    public void saveReputationValues(String datasetName) {
 	ConnectionSource source = super.getConnectionSource();
 	try {
-	    Dao<UserEntity, Long> UserDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, UserEntity.class, databaseName) );
+	    Dao<UserEntity, Long> UserDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, UserEntity.class, datasetName) );
 	    List<UserEntity> userentities = UserDao.queryForAll();
 	    try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("reputations.txt", false)))) {
 		for (UserEntity entity : userentities) {
@@ -436,12 +426,12 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
     }
 
-    public void saveNoOfRepliesByUser(String databaseName) {
+    public void saveNoOfRepliesByUser(String datasetName) {
 	ConnectionSource source = super.getConnectionSource();
 
 	try {
-	    Dao<UserEntity, Long> UserDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, UserEntity.class, databaseName) );
-	    Dao<DataEntity, Long> DataDao = DaoManager.createDao(source,getEntityConfigOfDataSet(source, DataEntity.class, databaseName) );
+	    Dao<UserEntity, Long> UserDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, UserEntity.class, datasetName) );
+	    Dao<DataEntity, Long> DataDao = DaoManager.createDao(source,getEntityConfigOfDataSet(source, DataEntity.class, datasetName) );
 
 	    QueryBuilder<DataEntity, Long> queryBuilder = DataDao.queryBuilder();
 
@@ -465,10 +455,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
     }
 
-    public void markPostType(String databaseName) {
+    public void markPostType(String datasetName) {
 	ConnectionSource source = super.getConnectionSource();
 	try {
-	    Dao<DataEntity, Long> DataDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, DataEntity.class, databaseName) );
+	    Dao<DataEntity, Long> DataDao = DaoManager.createDao(source, getEntityConfigOfDataSet(source, DataEntity.class, datasetName) );
 
 	    List<DataEntity> dataEntities = DataDao.queryForAll();
 	    UpdateBuilder<DataEntity, Long> updateBuilder = DataDao.updateBuilder();
@@ -490,13 +480,13 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
     }
 
-    public String getSemanticTags(String databaseName, String postId) {
+    public String getSemanticTags(String datasetName, String postId) {
 
 	String tags = null;
 	ConnectionSource source = super.getConnectionSource();
 	try {
 		
-	    Dao<SemanticTagEntity, Long> SemanticDao = DaoManager.createDao( source, getEntityConfigOfDataSet(source, SemanticTagEntity.class, databaseName) );
+	    Dao<SemanticTagEntity, Long> SemanticDao = DaoManager.createDao( source, getEntityConfigOfDataSet(source, SemanticTagEntity.class, datasetName) );
 	    QueryBuilder<SemanticTagEntity, Long> qb = SemanticDao.queryBuilder();
 	    qb.where().eq("post_id", postId);
 
@@ -514,7 +504,7 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	return tags;
     }
 
-    public void markExpertsForEvaluationFromReplies(String databaseName, ConnectionSource connectionSrc) throws SQLException {
+    public void markExpertsForEvaluationFromReplies(String datasetName, ConnectionSource connectionSrc) throws SQLException {
 
 	HashMap<Long, Long> userId2NoReplies = new HashMap();
 	try (BufferedReader br = new BufferedReader(new FileReader("reputations.txt"))) {
@@ -530,7 +520,7 @@ public class DatabaseHandler extends MySqlOpenHelper {
 	    e.printStackTrace();
 	}
 
-	Dao<UserEntity, Long> userDao = DaoManager.createDao(connectionSrc, getEntityConfigOfDataSet(connectionSrc, UserEntity.class, databaseName) );
+	Dao<UserEntity, Long> userDao = DaoManager.createDao(connectionSrc, getEntityConfigOfDataSet(connectionSrc, UserEntity.class, datasetName) );
 	List<UserEntity> user_entites = userDao.queryForAll();
 
 	UpdateBuilder updateBuilder = userDao.updateBuilder();
@@ -559,10 +549,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
     }
 
-    public String getPost(String databaseName, long postId) {
+    public String getPost(String datasetName, long postId) {
 		DataEntity entity = null;
 		try {
-		    Dao<DataEntity, Long> dataDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), DataEntity.class, databaseName));
+		    Dao<DataEntity, Long> dataDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), DataEntity.class, datasetName));
 		    entity = dataDao.queryForId(postId);
 		} catch (SQLException e) {
 		    e.printStackTrace();
@@ -589,11 +579,11 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
     }
 
-    public void createTagDistribution(String dbName) {
+    public void createTagDistribution(String datasetName) {
 	HashMap<String, Integer> c2count = new HashMap<String, Integer>();
 	ConnectionSource source = super.getConnectionSource();
 	try {
-	    Dao<SemanticTagEntity, Long> semanticrDao = DaoManager.createDao(source, getEntityConfigOfDataSet(super.getConnectionSource(), SemanticTagEntity.class, dbName) );
+	    Dao<SemanticTagEntity, Long> semanticrDao = DaoManager.createDao(source, getEntityConfigOfDataSet(super.getConnectionSource(), SemanticTagEntity.class, datasetName) );
 	    List<SemanticTagEntity> semanticentities = semanticrDao.queryForAll();
 
 	    for (SemanticTagEntity entity : semanticentities) {
@@ -637,10 +627,10 @@ public class DatabaseHandler extends MySqlOpenHelper {
      * @param userId
      * @return
      */
-    public String getUser(String databaseName, long userId) {
+    public String getUser(String datasetName, long userId) {
 	Dao<UserEntity, Long> userDao = null;
 	try {
-	    userDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), UserEntity.class, databaseName) );
+	    userDao = DaoManager.createDao(super.getConnectionSource(), getEntityConfigOfDataSet(super.getConnectionSource(), UserEntity.class, datasetName) );
 	    UserEntity entity = userDao.queryForId(userId);
 
 	    Gson gson = new Gson();
@@ -672,37 +662,37 @@ public class DatabaseHandler extends MySqlOpenHelper {
 
     }
 
-    public <T> DatabaseTableConfig<T> getEntityConfigOfDataSet(ConnectionSource connectionSrc, Class<T> entityClass, String databaseName){
+    public <T> DatabaseTableConfig<T> getEntityConfigOfDataSet(ConnectionSource connectionSrc, Class<T> entityClass, String datasetName){
 	    // Create the table config, with a custom table name
     	DatabaseTableConfig<T> entityConfig = null;
 		try {
 			if(entityClass == DataEntity.class){
 				entityConfig = DatabaseTableConfig.fromClass(connectionSrc, entityClass);
-				entityConfig.setTableName(databaseName + "_" + DatabaseTableConfig.extractTableName(entityClass));
+				entityConfig.setTableName(datasetName + "_" + DatabaseTableConfig.extractTableName(entityClass));
 			}
 			else if(entityClass == UserEntity.class){
 				entityConfig = DatabaseTableConfig.fromClass(connectionSrc, entityClass);
-				entityConfig.setTableName(databaseName + "_" + DatabaseTableConfig.extractTableName(entityClass));
+				entityConfig.setTableName(datasetName + "_" + DatabaseTableConfig.extractTableName(entityClass));
 			}
 			else if(entityClass == SemanticTagEntity.class){
 				entityConfig = DatabaseTableConfig.fromClass(connectionSrc, entityClass);
-				entityConfig.setTableName(databaseName + "_" + DatabaseTableConfig.extractTableName(entityClass));
+				entityConfig.setTableName(datasetName + "_" + DatabaseTableConfig.extractTableName(entityClass));
 			}
 			else if(entityClass == QueryEntity.class){
 				entityConfig = DatabaseTableConfig.fromClass(connectionSrc, entityClass);
-				entityConfig.setTableName(databaseName + "_" + DatabaseTableConfig.extractTableName(entityClass));
+				entityConfig.setTableName(datasetName + "_" + DatabaseTableConfig.extractTableName(entityClass));
 			}
 			else if(entityClass == EvaluationMetricsEntity.class){
 				entityConfig = DatabaseTableConfig.fromClass(connectionSrc, entityClass);
-				entityConfig.setTableName(databaseName + "_" + DatabaseTableConfig.extractTableName(entityClass));
+				entityConfig.setTableName(datasetName + "_" + DatabaseTableConfig.extractTableName(entityClass));
 			}
 			else if(entityClass == GraphEntity.class){
 				entityConfig = DatabaseTableConfig.fromClass(connectionSrc, entityClass);
-				entityConfig.setTableName(databaseName + "_" + DatabaseTableConfig.extractTableName(entityClass));
+				entityConfig.setTableName(datasetName + "_" + DatabaseTableConfig.extractTableName(entityClass));
 			}
 			else if(entityClass == ExpertEntity.class){
 				entityConfig = DatabaseTableConfig.fromClass(connectionSrc, entityClass);
-				entityConfig.setTableName(databaseName + "_" + DatabaseTableConfig.extractTableName(entityClass));
+				entityConfig.setTableName(datasetName + "_" + DatabaseTableConfig.extractTableName(entityClass));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

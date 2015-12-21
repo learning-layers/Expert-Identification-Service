@@ -109,7 +109,7 @@ public class EvaluationMeasure {
 	rr.compute();
     }
 
-    public void save(String databaseName, long queryId, ConnectionSource connSrc) throws JsonIOException, JsonSyntaxException, IOException {
+    public void save(String datasetName, long queryId, ConnectionSource connSrc) throws JsonIOException, JsonSyntaxException, IOException {
 
 	JsonObject jContainer = new JsonObject();
 	JsonObject metricsObj = new JsonObject();
@@ -198,7 +198,7 @@ public class EvaluationMeasure {
 	try {
 		DatabaseHandler dbHandler = new DatabaseHandler();
 
-	    Dao<EvaluationMetricsEntity, Long> EvaluationDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, EvaluationMetricsEntity.class, databaseName) );
+	    Dao<EvaluationMetricsEntity, Long> EvaluationDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, EvaluationMetricsEntity.class, datasetName) );
 
 	    evaluationEntity = new EvaluationMetricsEntity();
 	    evaluationEntity.setQueryId(queryId);

@@ -27,12 +27,12 @@ public class TagExtractor {
     String expertId;
     DatabaseHandler dbHandler;
     String expertCollectionId;
-    String databaseName;
+    String datasetName;
 
     int maxCount = 5;
 
-    public TagExtractor(String databaseName, DatabaseHandler dbHandler, String expertCollectionId, String expertId) {
-    this.databaseName = databaseName;
+    public TagExtractor(String datasetName, DatabaseHandler dbHandler, String expertCollectionId, String expertId) {
+    this.datasetName = datasetName;
 	this.dbHandler = dbHandler;
 	this.expertId = expertId;
 	this.expertCollectionId = expertCollectionId;
@@ -40,7 +40,7 @@ public class TagExtractor {
 
     public String getTags() {
 
-	String experts = this.dbHandler.getExperts( databaseName, Long.parseLong(this.expertCollectionId) );
+	String experts = this.dbHandler.getExperts( datasetName, Long.parseLong(this.expertCollectionId) );
 	ArrayList<String> labels = getRelatedPosts(experts);
 	if(labels == null) return ExceptionMessages.DATAFORMAT_NOT_VALID;
 	if(labels.equals("")) return ERSMessage.EXPORTID_NOT_FOUND;
@@ -52,7 +52,7 @@ public class TagExtractor {
 	    if (labels != null && labels.size() > 0) {
 		for (String label : labels) {
 		    if (label != null) {
-			String tags = this.dbHandler.getSemanticTags(databaseName, label);
+			String tags = this.dbHandler.getSemanticTags(datasetName, label);
 			// System.out.println("TAGS::  " + tags);
 			// Count the tag frequency in all the posts.
 			if (tags != null && tags.length() > 0) {

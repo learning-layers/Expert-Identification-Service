@@ -57,7 +57,7 @@ public class SematicsMapper {
 	totalEntityFreq = new HashMap<String, Integer>();
     }
 
-    public void buildIndex(String databaseName, TopDocs docs, String queryString, String filepath) {
+    public void buildIndex(String datasetName, TopDocs docs, String queryString, String filepath) {
 	SemanticTagger tagger = new SemanticTagger(queryString);
 	mQueryEntities = tagger.getTokens();
 
@@ -68,7 +68,7 @@ public class SematicsMapper {
 
 		DatabaseHandler dbHandler = new DatabaseHandler();
 
-	    Dao<SemanticTagEntity, Long> tagDao = DaoManager.createDao(mConnectionSource, dbHandler.getEntityConfigOfDataSet(mConnectionSource, SemanticTagEntity.class, databaseName) );
+	    Dao<SemanticTagEntity, Long> tagDao = DaoManager.createDao(mConnectionSource, dbHandler.getEntityConfigOfDataSet(mConnectionSource, SemanticTagEntity.class, datasetName) );
 	    for (ScoreDoc scoreDoc : docs.scoreDocs) {
 
 		Document doc = dataSearcher.doc(scoreDoc.doc);

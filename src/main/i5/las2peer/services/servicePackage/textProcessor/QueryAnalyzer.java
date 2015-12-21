@@ -47,17 +47,17 @@ public class QueryAnalyzer {
 
     /**
      * 
-     * @param databaseName 
+     * @param datasetName 
      * @param connSrc
      *            ConnectionSource to access the mysql database.
      * @return An id of the inserted row.
      */
-    public long getId(String databaseName, ConnectionSource connSrc) {
+    public long getId(String datasetName, ConnectionSource connSrc) {
 	// Save the text to the Db and generate an Id.
 	try {
 		DatabaseHandler dbHandler = new DatabaseHandler();
 
-	    Dao<QueryEntity, Long> QueryDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, QueryEntity.class, databaseName)  );
+	    Dao<QueryEntity, Long> QueryDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, QueryEntity.class, datasetName)  );
 	    queryEntity = new QueryEntity();
 	    queryEntity.setText(queryText);
 	    queryEntity.setDate(new Date());

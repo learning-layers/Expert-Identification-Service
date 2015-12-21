@@ -20,24 +20,24 @@ public class RelatedPostsExtractor {
     String expertId;
     DatabaseHandler dbHandler;
     String expertCollectionId;
-    String databaseName;
+    String datasetName;
 
     int maxCount = 5;
 
-    public RelatedPostsExtractor(String databaseName, DatabaseHandler dbHandler, String expertCollectionId, String expertId) {
-    this.databaseName = databaseName;
+    public RelatedPostsExtractor(String datasetName, DatabaseHandler dbHandler, String expertCollectionId, String expertId) {
+    this.datasetName = datasetName;
     this.dbHandler = dbHandler;
 	this.expertId = expertId;
 	this.expertCollectionId = expertCollectionId;
     }
 
     public String getPosts() {
-		String experts = this.dbHandler.getExperts( databaseName, Long.parseLong(this.expertCollectionId) );
+		String experts = this.dbHandler.getExperts( datasetName, Long.parseLong(this.expertCollectionId) );
 		ArrayList<String> labels = getRelatedPosts(experts);
 	
 		StringBuilder posts = new StringBuilder();
 		for (String postId : labels) {
-		    posts.append(dbHandler.getPost( databaseName, Long.parseLong(postId.trim())) );
+		    posts.append(dbHandler.getPost( datasetName, Long.parseLong(postId.trim())) );
 		    posts.append("<hr style=\"border-color:red\">");
 		}
 	

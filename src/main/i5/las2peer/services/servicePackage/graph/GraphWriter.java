@@ -100,11 +100,11 @@ public class GraphWriter {
 	return new String(LocalFileManager.getFile(filename));
     }
 
-    public void saveToDb(String databaseName, long queryId, ConnectionSource connSrc) {
+    public void saveToDb(String datasetName, long queryId, ConnectionSource connSrc) {
 	try {
 		DatabaseHandler dbHandler = new DatabaseHandler();
 		
-	    Dao<GraphEntity, Long> graphDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, GraphEntity.class, databaseName) );
+	    Dao<GraphEntity, Long> graphDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, GraphEntity.class, datasetName) );
 
 	    graphEntity = new GraphEntity();
 	    graphEntity.setQueryId(queryId);

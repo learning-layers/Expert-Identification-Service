@@ -13,7 +13,7 @@ public class ExceptionMessages {
     public static final String USERS_NOT_VALID = "Users not found";
     public static final String INDEX_SEARCH_EXCEPTION = "Something went wrong while searching the index";
     public static final String CREATE_GRAPH_EXCEPTION = "Exception while creating graph";
-    public static final String DATABASE_NOT_FOUND = "Database for the requested id is not found";
+    public static final String DATASET_NOT_FOUND = "Dataset for the requested id is not found";
     
     public static final String DATAFORMAT_NOT_VALID = "Data format is not valid.";
 

@@ -37,7 +37,7 @@ public class LuceneMysqlIndexer {
     private ConnectionSource connSrc;
     private IndexWriter indexWriter;
     private String indexDirectoryPath;
-    private String databaseName;
+    private String datasetName;
     private static String dataIndexBasePath = "luceneIndex/%s/data/";
     private static String semanticsIndexBasePath = "luceneIndex/%s/semantics/";
 
@@ -52,10 +52,10 @@ public class LuceneMysqlIndexer {
      * @throws IOException
      *             Exception is thrown if files cannot be created or opened.
      */
-    public LuceneMysqlIndexer(String databaseName, ConnectionSource connectionSrc, String indexDirectoryPath) throws IOException {
+    public LuceneMysqlIndexer(String datasetName, ConnectionSource connectionSrc, String indexDirectoryPath) throws IOException {
 	connSrc = connectionSrc;
 	this.indexDirectoryPath = indexDirectoryPath;
-	this.databaseName = databaseName;
+	this.datasetName = datasetName;
     }
 
     /**
@@ -76,7 +76,7 @@ public class LuceneMysqlIndexer {
 	Document dataDoc;
 
 	DatabaseHandler dbHandler = new DatabaseHandler();
-	Dao<DataEntity, Long> postsDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, DataEntity.class, databaseName) );
+	Dao<DataEntity, Long> postsDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, DataEntity.class, datasetName) );
 
 	List<DataEntity> data_entites = postsDao.queryForAll();
 	// Application.totalNoOfResources = data_entites.size();
@@ -168,8 +168,8 @@ public class LuceneMysqlIndexer {
 
 	Document semanticDataDoc = new Document();
 
-	Dao<DataEntity, Long> postsDao = DaoManager.createDao(connSrc,dbHandler.getEntityConfigOfDataSet(connSrc, DataEntity.class, databaseName) );
-	Dao<SemanticTagEntity, Long> semanticsDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, SemanticTagEntity.class, databaseName) );
+	Dao<DataEntity, Long> postsDao = DaoManager.createDao(connSrc,dbHandler.getEntityConfigOfDataSet(connSrc, DataEntity.class, datasetName) );
+	Dao<SemanticTagEntity, Long> semanticsDao = DaoManager.createDao(connSrc, dbHandler.getEntityConfigOfDataSet(connSrc, SemanticTagEntity.class, datasetName) );
 
 	List<DataEntity> dataEntites = postsDao.queryForAll();
 

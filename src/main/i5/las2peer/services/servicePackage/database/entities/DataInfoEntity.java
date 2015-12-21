@@ -23,11 +23,11 @@ public class DataInfoEntity {
     @DatabaseField(generatedId = true)
     private long id;
 
+    @DatabaseField(columnName = "display_name", dataType = DataType.LONG_STRING)
+    private String displayName;
+
     @DatabaseField(columnName = "dataset_name", dataType = DataType.LONG_STRING)
     private String datasetName;
-
-    @DatabaseField(columnName = "database_name", dataType = DataType.LONG_STRING)
-    private String databaseName;
 
     @DatabaseField(columnName = "original_filepath", dataType = DataType.LONG_STRING)
     private String filepath;
@@ -58,12 +58,12 @@ public class DataInfoEntity {
 	this.date = date;
     }
 
-    public void setDatabase(String dbName) {
-	this.databaseName = dbName;
+    public void setDatasetName(String dataSetName) {
+	this.datasetName = dataSetName;
     }
 
-    public void setDataset(String dataset) {
-	this.datasetName = dataset;
+    public void setDisplayName(String displayName) {
+	this.displayName = displayName;
     }
 
     public String getIndexFilepath() {
@@ -74,8 +74,8 @@ public class DataInfoEntity {
 	return datasetName;
     }
 
-    public String getDatabaseName() {
-	return databaseName;
+    public String getDisplayName() {
+	return displayName;
     }
 
     public String getDatasetFilePath() {
