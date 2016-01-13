@@ -97,12 +97,12 @@ import com.j256.ormlite.table.TableUtils;
 
 
 @Path("ers")
-@Version("0.1") // this annotation is used by the XML mapper
+@Version("1.0") // this annotation is used by the XML mapper
 @Api
 @SwaggerDefinition(
 		info = @Info(
 				title = "Expert Recommender Service",
-				version = "0.1",
+				version = "1.0",
 				description = "An open source expert recommender system to recommend experts from the given data.",
 				termsOfService = "",
 				contact = @Contact(
@@ -964,34 +964,6 @@ public class ExpertRecommenderService extends Service {
 		return res;
     }
     
-    // //////////////////////////////////////////////////////////////////////////////////////
- 	// Methods providing a Swagger documentation of the service API.
- 	// //////////////////////////////////////////////////////////////////////////////////////
-
- 	/**
- 	 * Returns the API documentation for this annotated class for purposes of the Swagger 2.0 documentation.
- 	 * 
- 	 * @return The resource's documentation.
- 	 */
- 	@GET
- 	@Path("/swagger.json")
- 	@Produces(MediaType.APPLICATION_JSON)
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "Success"), @ApiResponse(code = 404, message = "Resource Not Found"), @ApiResponse(code = 500, message = "Swagger Failure") })
- 	@ApiOperation(value = "Get Swagger Documentation.",
- 		notes = "Returns the Swagger API declaration in JSON format.")
- 	public HttpResponse getSwaggerJSON() {
- 		Swagger swagger = new Reader(new Swagger()).read(this.getClass());
- 		if (swagger == null) {
- 			return new HttpResponse("Swagger API declaration not available!", HttpURLConnection.HTTP_NOT_FOUND);
- 		}
- 		try {
- 			return new HttpResponse(Json.mapper().writeValueAsString(swagger), HttpURLConnection.HTTP_OK);
- 		} catch (JsonProcessingException e) {
- 			e.printStackTrace();
- 			return new HttpResponse(e.getMessage(), 500);
- 		}
- 	}
-
     /**
      * 
      * @param datasetId
